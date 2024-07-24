@@ -1,21 +1,28 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
+//componentes
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
+
+//icones
+import { ReloadIcon } from '@radix-ui/react-icons';
 
 function RegisterPage() {
   const [company, setCompnay] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
 
   const handleRegister = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+
+    setLoading(true);
 
     //Verificacao se ja tem conta neste email
     const { data: existingUser, error: checkError } = await supabase
@@ -30,6 +37,7 @@ function RegisterPage() {
         className: 'bg-red-300',
         duration: 4000,
       });
+      setLoading(false);
       return;
     }
 
@@ -39,6 +47,7 @@ function RegisterPage() {
         className: 'bg-red-300',
         duration: 4000,
       });
+      setLoading(false);
       return;
     }
 
@@ -52,6 +61,7 @@ function RegisterPage() {
         className: 'bg-red-300',
         duration: 4000,
       });
+      setLoading(false);
       return;
     }
 
@@ -70,6 +80,7 @@ function RegisterPage() {
         className: 'bg-red-300',
         duration: 4000,
       });
+      setLoading(false);
       return;
     }
 
@@ -86,6 +97,7 @@ function RegisterPage() {
         className: 'bg-red-300',
         duration: 4000,
       });
+      setLoading(false);
       return;
     }
 
@@ -94,20 +106,22 @@ function RegisterPage() {
       .from('empresa_usuarios')
       .insert([{ empresa_id: companyData.id, usuario_id: userData.id }]);
 
-    if(associacaoError){
+    if (associacaoError) {
       toast({
         description: associacaoError.message,
         className: 'bg-red-300',
         duration: 4000,
       });
+      setLoading(false);
       return;
     }
 
     toast({
-      description: "Conta criada com sucesso!",
-      className: "bg-green-300",
+      description: 'Conta criada com sucesso!',
+      className: 'bg-green-300',
       duration: 4000,
     });
+    setLoading(false);
   };
 
   return (
@@ -168,8 +182,15 @@ function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button className="w-full" type="submit">
-              Cadastrar-me
+            <Button className="w-full" type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                  Carregando...
+                </>
+              ) : (
+                'Cadastrar-me'
+              )}
             </Button>
             <Button variant="link">
               <a href="/login">Já tenho conta</a>
