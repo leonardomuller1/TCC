@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
+import CardAuthComponent from '@/components/auth/cardComponent';
 
 //icones
 import { ReloadIcon } from '@radix-ui/react-icons';
@@ -65,16 +66,7 @@ function UpdatePasswordPage() {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-row">
-      <div className="bg-gray-900 p-12 basis-1/2 flex flex-col justify-between">
-        <img alt="logo" src="../../public/logo.png" className="w-32" />
-        <div className="flex flex-col gap-4">
-          <h3 className="text-gray-50 text-lg font-semibold">
-            "Em alguns anos vão existir dois tipos de empresas: as que fazem
-            negócios pela internet e as que estão fora dos negócios."
-          </h3>
-          <h4 className="text-gray-50 text-sm">Bill Gates</h4>
-        </div>
-      </div>
+      <CardAuthComponent />
       <div className="basis-1/2 flex justify-center items-center">
         <div className="w-1/2 flex flex-col gap-4">
           <div className="p-6 flex flex-col justify-center items-center gap-1">
