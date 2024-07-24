@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '../../supabaseClient';
 
 //componentes
@@ -25,54 +26,58 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingResetPassoword, setLoadingResetPassoword] = useState(false);
-  const [openDialogResetPassWord, setOpenDialogResetPassWord] = useState(false);
-
+  const [loadingResetPassword, setLoadingResetPassword] = useState(false);
+  const [openDialogResetPassword, setOpenDialogResetPassword] = useState(false);
   const { toast } = useToast();
+  
+  const setUser = useAuthStore((state) => state.setUser);
 
-  const handleLogin = async (e: { preventDefault: () => void }) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    //login no supabase
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      if (error.message === 'Invalid login credentials') {
+      toast({
+        description: error.message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    } else if (data.user) {
+      const { id, email } = data.user;
+
+      if (email) {
+        const userData = {
+          id,
+          email,
+          companyId: 'company-id-from-your-backend', // Update this accordingly
+        };
+        setUser(userData);
+
         toast({
-          description: 'Credenciais de login inválidas.',
-          className: 'bg-red-300',
-          duration: 4000,
-        });
-      } else if (error.message === 'Email not confirmed') {
-        toast({
-          description: 'Email não confirmado!',
-          className: 'bg-red-300',
+          description: 'Login realizado com sucesso!',
+          className: 'bg-green-300',
           duration: 4000,
         });
       } else {
         toast({
-          description: error.message,
+          description: 'Erro: o email do usuário não foi encontrado.',
           className: 'bg-red-300',
           duration: 4000,
         });
       }
-    } else {
-      toast({
-        description: 'Login realizado com sucesso!',
-        className: 'bg-green-300',
-        duration: 4000,
-      });
     }
     setLoading(false);
   };
 
-  const handlePasswordReset = async (e: { preventDefault: () => void }) => {
+  const handlePasswordReset = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setLoadingResetPassoword(true);
+    setLoadingResetPassword(true);
+
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
       redirectTo: 'https://localhost:5173/update-password',
     });
@@ -89,9 +94,9 @@ function LoginPage() {
         className: 'bg-green-300',
         duration: 4000,
       });
-      setOpenDialogResetPassWord(false); // Fecha o diálogo após o envio do email
-      setLoadingResetPassoword(false);
+      setOpenDialogResetPassword(false); // Fecha o diálogo após o envio do email
     }
+    setLoadingResetPassword(false);
   };
 
   return (
@@ -144,8 +149,8 @@ function LoginPage() {
 
               {/* Esqueci a senha */}
               <Dialog
-                open={openDialogResetPassWord}
-                onOpenChange={setOpenDialogResetPassWord}
+                open={openDialogResetPassword}
+                onOpenChange={setOpenDialogResetPassword}
               >
                 <DialogTrigger asChild>
                   <Button variant="link" size="link">
@@ -165,7 +170,7 @@ function LoginPage() {
                       <Input
                         type="email"
                         placeholder="Email"
-                        id="email"
+                        id="resetEmail"
                         required
                         value={resetEmail}
                         onChange={(e) => setResetEmail(e.target.value)}
@@ -178,7 +183,7 @@ function LoginPage() {
                       className="w-full"
                       onClick={handlePasswordReset}
                     >
-                      {loadingResetPassoword ? (
+                      {loadingResetPassword ? (
                         <>
                           <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
                           Enviando o email...

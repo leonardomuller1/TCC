@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
+import useAuthStore from '@/stores/useAuthStore';
 
 //componentes
 import { Button } from '@/components/ui/button';
@@ -12,12 +14,13 @@ import CardAuthComponent from '@/components/auth/cardComponent';
 import { ReloadIcon } from '@radix-ui/react-icons';
 
 function RegisterPage() {
-  const [company, setCompnay] = useState('');
+  const [company, setCompany] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const { setUser } = useAuthStore();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleRegister = async (e: { preventDefault: () => void }) => {
@@ -25,7 +28,7 @@ function RegisterPage() {
 
     setLoading(true);
 
-    //Verificacao se ja tem conta neste email
+    // Verificacao se ja tem conta neste email
     const { data: existingUser, error: checkError } = await supabase
       .from('usuarios')
       .select('email')
@@ -68,7 +71,17 @@ function RegisterPage() {
 
     const userId = registerData.user?.id;
 
-    //Cria a empresa
+    if (!userId) {
+      toast({
+        description: 'Erro ao obter ID do usuário.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Cria a empresa
     const { data: companyData, error: companyError } = await supabase
       .from('empresas')
       .insert([{ nome: company }])
@@ -85,7 +98,7 @@ function RegisterPage() {
       return;
     }
 
-    //Cria o usuario com ID da empresas
+    // Cria o usuario com ID da empresa
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
       .insert([{ id: userId, nome: name, email, empresa: companyData.id }])
@@ -102,7 +115,7 @@ function RegisterPage() {
       return;
     }
 
-    //Adiciona o usuario a empresa
+    // Adiciona o usuario a empresa
     const { error: associacaoError } = await supabase
       .from('empresa_usuarios')
       .insert([{ empresa_id: companyData.id, usuario_id: userData.id }]);
@@ -123,6 +136,15 @@ function RegisterPage() {
       duration: 4000,
     });
     setLoading(false);
+    const userWithCompanyId = {
+      ...registerData.user,
+      id: userId,
+      companyId: companyData.id,
+      email: email,
+    };
+
+    setUser(userWithCompanyId);
+    navigate('/dashboard');
   };
 
   return (
@@ -149,7 +171,7 @@ function RegisterPage() {
               id="company"
               required
               value={company}
-              onChange={(e) => setCompnay(e.target.value)}
+              onChange={(e) => setCompany(e.target.value)}
             />
             <Input
               type="text"
