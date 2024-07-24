@@ -20,7 +20,7 @@ const CardPost: React.FC<CardProps> = ({ title, link, alt, image }) => {
 
   return (
     <div className="border rounded-2xl divide-gray-200 p-2 flex flex-col items-center justify-items-center hover:bg-gray-100">
-      <img src={image} alt={alt} className="h-full" />
+      <img src={image} alt={alt} className="h-64	" />
       <Button
         variant="link"
         className="text-gray-900 text-sm font-semibold"
