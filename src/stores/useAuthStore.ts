@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface User {
@@ -20,7 +20,7 @@ const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      getStorage: () => localStorage, 
+      getStorage: () => localStorage,
       version: 1,
       migrate: (persistedState, version) => {
         if (version === 0) {
@@ -30,8 +30,8 @@ const useAuthStore = create<AuthState>()(
         }
         return persistedState;
       },
-    }
-  )
+    },
+  ),
 );
 
 export default useAuthStore;

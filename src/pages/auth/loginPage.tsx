@@ -29,7 +29,7 @@ function LoginPage() {
   const [loadingResetPassword, setLoadingResetPassword] = useState(false);
   const [openDialogResetPassword, setOpenDialogResetPassword] = useState(false);
   const { toast } = useToast();
-  
+
   const setUser = useAuthStore((state) => state.setUser);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -74,7 +74,9 @@ function LoginPage() {
     setLoading(false);
   };
 
-  const handlePasswordReset = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handlePasswordReset = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
     e.preventDefault();
     setLoadingResetPassword(true);
 
