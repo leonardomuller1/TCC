@@ -141,6 +141,7 @@ function RegisterPage() {
       id: userId,
       companyId: companyData.id,
       email: email,
+      name: name
     };
 
     setUser(userWithCompanyId);
