@@ -9,37 +9,37 @@ const DashboardPage: React.FC = () => {
                     title="Problema"
                     link='/problema'
                     alt="Problema"
-                    image="../../public/Problema.png"
+                    image="./Problema.png"
                 />
                 <CardPost
                     title="Segmento de clientes e Público-alvo"
                     link='/clientes'
                     alt="Segmento de clientes e Público-alvo"
-                    image="../../public/segmentodeclientes.png"
+                    image="./segmentodeclientes.png"
                 />
                 <CardPost
                     title="Solução e proposta de valor"
                     link='/solucao'
                     alt="Solução e proposta de valor"
-                    image="../../public/PropostadeValor.png"
+                    image="./PropostadeValor.png"
                 />
                 <CardPost
                     title="Análise de concorrentes"
                     link='/concorrentes'
                     alt="Análise de concorrentes"
-                    image="../../public/Analisedeconcorrentes.png"
+                    image="./Analisedeconcorrentes.png"
                 />
                 <CardPost
                     title="Estrutura de custos e receita"
                     link='/receita'
                     alt="Estrutura de custos e receita"
-                    image="../../public/EstruturaDeCustos.png"
+                    image="./EstruturaDeCustos.png"
                 />
                 <CardPost
                     title="Métricas chaves e andamento"
                     link='/andamento'
                     alt="Métricas chaves e andamento"
-                    image="../../public/MetricasChaves.png"
+                    image="./MetricasChaves.png"
                 />
             </div>
         </div>
