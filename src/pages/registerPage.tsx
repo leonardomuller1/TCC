@@ -192,9 +192,11 @@ function RegisterPage() {
                 'Cadastrar-me'
               )}
             </Button>
-            <Button variant="link">
-              <a href="/login">Já tenho conta</a>
-            </Button>
+            <div className="flex w-full">
+              <Button variant="link" size="link">
+                <a href="/login">Já tenho conta</a>
+              </Button>
+            </div>
             <p className="text-gray-500 text-xs text-center">
               Ao clicar em continuar, você concorda com nossos Termos de Serviço
               e Política de Privacidade.
