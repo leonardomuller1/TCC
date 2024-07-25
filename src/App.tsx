@@ -14,7 +14,7 @@ function App() {
       <Routes>
         {/* Rotas de autenticação */}
         <Route
-          path="/login"
+          path="/entrar"
           element={
             <RedirectIfAuthenticated>
               <LoginPage />
@@ -22,7 +22,7 @@ function App() {
           }
         />
         <Route
-          path="/register"
+          path="/criar-conta"
           element={
             <RedirectIfAuthenticated>
               <RegisterPage />
@@ -30,7 +30,7 @@ function App() {
           }
         />
         <Route
-          path="/update-password"
+          path="/atualizar-senha"
           element={
             <RedirectIfAuthenticated>
               <UpdatePasswordPage />
@@ -42,7 +42,12 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
-          <Route path="/*" element={<DashboardPage />} />
+          <Route path="/configuracao" element={<DashboardPage />} />
+        </Route>
+
+        {/* QUALQUER ROTA JOGA PARA A DASHBOARD */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="*" element={<DashboardPage />} />
         </Route>
       </Routes>
     </Router>

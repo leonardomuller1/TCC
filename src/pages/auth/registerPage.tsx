@@ -210,7 +210,7 @@ function RegisterPage() {
             </Button>
             <div className="flex w-full">
               <Button variant="link" size="link">
-                <a href="/login">Já tenho conta</a>
+                <a href="/entrar">Já tenho conta</a>
               </Button>
             </div>
             <p className="text-gray-500 text-xs text-center">
