@@ -1,12 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+
+//protecion routes
+import RedirectIfAuthenticated from './components/auth/RedirectIfAuthenticatedt';
+import ConfigurationPage from './pages/ConfigurationPage';
+
 // pages
 import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage.tsx'
+import RegisterPage from './pages/auth/RegisterPage'
 import UpdatePasswordPage from './pages/auth/UpdatePasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import RedirectIfAuthenticated from './components/auth/RedirectIfAuthenticatedt.tsx';
 
 function App() {
   return (
@@ -42,7 +46,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
-          <Route path="/configuracao" element={<DashboardPage />} />
+          <Route path="/configuracao" element={<ConfigurationPage />} />
         </Route>
 
         {/* QUALQUER ROTA JOGA PARA A DASHBOARD */}
