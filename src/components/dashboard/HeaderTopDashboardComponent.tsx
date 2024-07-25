@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/useAuthStore';
+import { supabase } from '../../supabaseClient';
 
 type NamePageMap = {
   '/problema': string;
@@ -23,7 +25,46 @@ function HeaderTopDashboard() {
   const location = useLocation();
   const currentPath = location.pathname as keyof NamePageMap;
   const dynamicName = namePages[currentPath] || 'Página';
-  const { user } = useAuthStore();
+  const { userId, user, setUser } = useAuthStore();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (userId) {
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('id, nome, email, empresa')
+          .eq('id', userId)
+          .single();
+
+        if (userError) {
+          console.error(userError.message);
+          return;
+        }
+
+        const { data: companyData, error: companyError } = await supabase
+          .from('empresas')
+          .select('id')
+          .eq('id', userData.empresa)
+          .single();
+
+        if (companyError) {
+          console.error(companyError.message);
+          return;
+        }
+
+        const userWithCompanyId = {
+          id: userId,
+          companyId: companyData.id,
+          email: userData.email,
+          name: userData.nome,
+        };
+
+        setUser(userWithCompanyId);
+      }
+    };
+
+    fetchUserData();
+  }, [userId, setUser]);
 
   return (
     <div className="w-full bg-white border-b border-gray-200 py-4 px-32">

@@ -9,14 +9,18 @@ interface User {
 }
 
 interface AuthState {
+  userId: string | null;
   user: User | null;
+  setUserId: (userId: string | null) => void;
   setUser: (user: User | null) => void;
 }
 
 const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
+      userId: null,
       user: null,
+      setUserId: (userId) => set({ userId }),
       setUser: (user) => set({ user }),
     }),
     {
@@ -25,9 +29,12 @@ const useAuthStore = create<AuthState>()(
       version: 1,
       migrate: (persistedState, version) => {
         if (version === 0) {
-          return {
-            user: persistedState,
-          };
+          if (typeof persistedState === 'object' && persistedState !== null && 'user' in persistedState) {
+            const user = persistedState as unknown as User;
+            return {
+              userId: user.id || null,
+            };
+          }
         }
         return persistedState;
       },

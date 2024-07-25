@@ -19,7 +19,7 @@ function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setUser } = useAuthStore();
+  const { setUserId } = useAuthStore();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -136,15 +136,7 @@ function RegisterPage() {
       duration: 4000,
     });
     setLoading(false);
-    const userWithCompanyId = {
-      ...registerData.user,
-      id: userId,
-      companyId: companyData.id,
-      email: email,
-      name: name
-    };
-
-    setUser(userWithCompanyId);
+    setUserId(userId);
     navigate('/dashboard');
   };
 

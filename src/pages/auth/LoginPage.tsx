@@ -30,7 +30,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loadingResetPassoword, setLoadingResetPassoword] = useState(false);
   const [openDialogResetPassWord, setOpenDialogResetPassWord] = useState(false);
-  const { setUser } = useAuthStore();
+  const { setUserId, setUser } = useAuthStore();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -97,13 +97,13 @@ function LoginPage() {
     }
 
     const userWithCompanyId = {
-      ...loginData.user,
       id: userId,
       companyId: companyData.id,
       email: userData.email,
-      name: userData.nome, // Incluindo o nome aqui
+      name: userData.nome,
     };
 
+    setUserId(userId);
     setUser(userWithCompanyId);
     toast({
       description: 'Login realizado com sucesso!',
@@ -113,6 +113,7 @@ function LoginPage() {
     setLoading(false);
     navigate('/dashboard');
   };
+
   const handlePasswordReset = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setLoadingResetPassoword(true);
@@ -136,6 +137,7 @@ function LoginPage() {
       setLoadingResetPassoword(false);
     }
   };
+
   return (
     <div className="h-screen bg-gray-50 flex flex-row">
       <CardAuthComponent />
