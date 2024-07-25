@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-import CardAuthComponent from '@/components/auth/CardComponent';
+import CardAuthComponent from '../../components/auth/CardComponent';
 
 //icones
 import { ReloadIcon } from '@radix-ui/react-icons';

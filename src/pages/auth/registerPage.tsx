@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
-import CardAuthComponent from '@/components/auth/CardComponent';
+import CardAuthComponent from '../../components/auth/CardComponent';
 
 //icones
 import { ReloadIcon } from '@radix-ui/react-icons';
