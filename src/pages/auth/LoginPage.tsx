@@ -44,7 +44,7 @@ function LoginPage() {
 
     if (loginError) {
       toast({
-        description: loginError.message,
+        description: 'Credenciais inválidas, verifique a senha e o e-mail.',
         className: 'bg-red-300',
         duration: 4000,
       });
