@@ -42,23 +42,26 @@ function ConfigurationPage() {
     }
   }, [user, toast]);
 
-  const handleUpdateProfile = async (e: { preventDefault: () => void; }) =>{
+  const handleUpdateProfile = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     const updates: { [key: string]: unknown } = {};
 
-    if(name){
+    if (name) {
       updates.nome = name;
     }
 
-    const {error:updateError} = await supabase.from('usuarios').update(updates).eq('id', user?.id)
+    const { error: updateError } = await supabase
+      .from('usuarios')
+      .update(updates)
+      .eq('id', user?.id);
 
-    if(updateError){
+    if (updateError) {
       toast({
         description: updateError.message,
-        className: "bg-red-300",
+        className: 'bg-red-300',
         duration: 4000,
-      })
+      });
       return;
     }
 
@@ -68,17 +71,20 @@ function ConfigurationPage() {
       });
 
       if (passwordError) {
-        if(passwordError.message == 'New password should be different from the old password.'){
+        if (
+          passwordError.message ==
+          'New password should be different from the old password.'
+        ) {
           toast({
             description: 'A nova senha deve ser diferente da senha antiga.',
-            className: "bg-red-300",
+            className: 'bg-red-300',
             duration: 4000,
           });
           return;
         }
         toast({
           description: passwordError.message,
-          className: "bg-red-300",
+          className: 'bg-red-300',
           duration: 4000,
         });
         return;
@@ -86,16 +92,19 @@ function ConfigurationPage() {
     }
 
     toast({
-      description: "Perfil atualizado com sucesso!",
-      className: "bg-green-300",
+      description: 'Perfil atualizado com sucesso!',
+      className: 'bg-green-300',
       duration: 4000,
     });
-  }
+  };
 
   return (
     <CardPages>
       <h1 className="text-gray-900 font-bold text-2xl">Configurações</h1>
-      <form className="gap-4 flex flex-col w-1/3" onSubmit={handleUpdateProfile}>
+      <form
+        className="gap-4 flex flex-col w-1/3"
+        onSubmit={handleUpdateProfile}
+      >
         <div className="gap-2 flex flex-col">
           <Label>Nome</Label>
           <Input
@@ -121,7 +130,7 @@ function ConfigurationPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button type='submit'>Alterar dados</Button>
+        <Button type="submit">Alterar dados</Button>
       </form>
       <Toaster />
     </CardPages>

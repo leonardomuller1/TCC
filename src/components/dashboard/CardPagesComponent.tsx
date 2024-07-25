@@ -1,4 +1,4 @@
-import HeaderTopDashboard from "./HeaderTopDashboardComponent";
+import HeaderTopDashboard from './HeaderTopDashboardComponent';
 
 interface CardProps {
   children: React.ReactNode;

@@ -29,7 +29,11 @@ const useAuthStore = create<AuthState>()(
       version: 1,
       migrate: (persistedState, version) => {
         if (version === 0) {
-          if (typeof persistedState === 'object' && persistedState !== null && 'user' in persistedState) {
+          if (
+            typeof persistedState === 'object' &&
+            persistedState !== null &&
+            'user' in persistedState
+          ) {
             const user = persistedState as unknown as User;
             return {
               userId: user.id || null,

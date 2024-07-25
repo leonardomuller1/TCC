@@ -68,10 +68,10 @@ function HeaderTopDashboard() {
 
   return (
     <div className="w-full bg-white border-b border-gray-200 py-4 px-32">
-      <div className='flex flex-row gap-4 justify-between items-center'>
-        <div className='flex flex-row gap-4'>
+      <div className="flex flex-row gap-4 justify-between items-center">
+        <div className="flex flex-row gap-4">
           <p className="text-gray-400 font-normal text-sm hover:text-gray-900 hover:font-semibold">
-            <a href='/'>Dashboard</a>
+            <a href="/">Dashboard</a>
           </p>
           <p className="text-gray-900 font-normal text-sm hover:font-semibold">
             {dynamicName}
