@@ -21,18 +21,27 @@ const namePages: NamePageMap = {
   '/andamento': 'Métricas chaves e andamento',
 };
 
+type User = {
+  id: string;
+  name: string;
+  foto: string;
+  email: string;
+  companyId: string;
+};
+
 function HeaderTopDashboard() {
   const location = useLocation();
   const currentPath = location.pathname as keyof NamePageMap;
-  const dynamicName = namePages[currentPath] || 'Página';
+  const dynamicName = namePages[currentPath] || '';
   const { userId, user, setUser } = useAuthStore();
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (userId) {
+        // Selecionando somente os campos nome e foto do usuário
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
-          .select('id, nome, email, empresa')
+          .select('nome, foto, email, empresa') // Inclua os campos necessários
           .eq('id', userId)
           .single();
 
@@ -41,6 +50,7 @@ function HeaderTopDashboard() {
           return;
         }
 
+        // Selecionando somente o ID da empresa
         const { data: companyData, error: companyError } = await supabase
           .from('empresas')
           .select('id')
@@ -52,11 +62,13 @@ function HeaderTopDashboard() {
           return;
         }
 
-        const userWithCompanyId = {
+        // Atualizando o estado com todos os campos necessários
+        const userWithCompanyId: User = {
           id: userId,
-          companyId: companyData.id,
-          email: userData.email,
           name: userData.nome,
+          foto: userData.foto,
+          email: userData.email,
+          companyId: companyData.id,
         };
 
         setUser(userWithCompanyId);
@@ -70,18 +82,27 @@ function HeaderTopDashboard() {
     <div className="w-full bg-white border-b border-gray-200 py-4 px-32">
       <div className="flex flex-row gap-4 justify-between items-center">
         <div className="flex flex-row gap-4">
-          <p className="text-gray-400 font-normal text-sm hover:text-gray-900 hover:font-semibold">
-            <a href="/">Dashboard</a>
-          </p>
-          <p className="text-gray-900 font-normal text-sm hover:font-semibold">
-            {dynamicName}
-          </p>
+          {dynamicName && (
+            <>
+              <p className="text-gray-400 font-normal text-sm hover:text-gray-900 hover:font-semibold">
+                <a href="/">Dashboard</a>
+              </p>
+              <p className="text-gray-900 font-normal text-sm hover:font-semibold">
+                {dynamicName}
+              </p>
+            </>
+          )}
         </div>
         {user && (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <p className="text-gray-900 font-normal text-sm">
               Bem-vindo, {user.name}
             </p>
+            <img
+              src={user.foto}
+              alt={`${user.name}'s profile`}
+              className="w-8 h-8 rounded-full"
+            />
           </div>
         )}
       </div>
