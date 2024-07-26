@@ -10,7 +10,11 @@ interface MyTableComponentProps {
 
 const DataTable: React.FC<MyTableComponentProps> = ({ headers, rows, onAddClick, onOptionsClick }) => {
   return (
+<<<<<<< HEAD
     <div>
+=======
+    <div className="p-32">
+>>>>>>> 596626c3f4b07b844431c40d2df8eb111a722877
       <div className="overflow-hidden rounded-lg border border-gray-200">
         <table className="min-w-full bg-white">
           <thead className="bg-gray-50 border-b border-gray-200">
