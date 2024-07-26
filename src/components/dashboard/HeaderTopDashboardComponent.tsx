@@ -10,6 +10,7 @@ type NamePageMap = {
   '/concorrentes': string;
   '/receita': string;
   '/andamento': string;
+  '/configuracao': string;
 };
 
 const namePages: NamePageMap = {
@@ -19,6 +20,7 @@ const namePages: NamePageMap = {
   '/concorrentes': 'Análise de concorrentes',
   '/receita': 'Estrutura de custos e receita',
   '/andamento': 'Métricas chaves e andamento',
+  '/configuracao': 'Configurações',
 };
 
 type User = {
@@ -98,11 +100,13 @@ function HeaderTopDashboard() {
             <p className="text-gray-900 font-normal text-sm">
               Bem-vindo, {user.name}
             </p>
-            <img
-              src={user.foto}
-              alt={`${user.name}'s profile`}
-              className="w-8 h-8 rounded-full"
-            />
+            <a href="/configuracao">
+              <img
+                src={user.foto}
+                alt={`${user.name}'s profile`}
+                className="w-8 h-8 rounded-full"
+              />
+            </a>
           </div>
         )}
       </div>
