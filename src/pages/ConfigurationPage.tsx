@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 
 //components
 import CardPages from '@/components/dashboard/CardPagesComponent';
@@ -17,6 +17,8 @@ function ConfigurationPage() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,6 +32,7 @@ function ConfigurationPage() {
         if (data) {
           setEmail(data.email);
           setName(data.nome);
+          setProfileImage(data.foto);
         } else if (error) {
           toast({
             description: error.message,
@@ -42,13 +45,52 @@ function ConfigurationPage() {
     }
   }, [user, toast]);
 
-  const handleUpdateProfile = async (e: { preventDefault: () => void }) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setProfileImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const handleUpdateProfile = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const updates: { [key: string]: unknown } = {};
+    const updates: { nome?: string; foto?: string } = {};
 
     if (name) {
       updates.nome = name;
+    }
+
+    if (imageFile) {
+      const { error: uploadError } = await supabase.storage
+        .from('imageUser')
+        .upload(`public/${user?.id}/${imageFile.name}`, imageFile, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        toast({
+          description: uploadError.message,
+          className: 'bg-red-300',
+          duration: 4000,
+        });
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('imageUser')
+        .getPublicUrl(`public/${user?.id}/${imageFile.name}`);
+      
+      if (publicUrlData?.publicUrl) {
+        updates.foto = publicUrlData.publicUrl;
+      }
     }
 
     const { error: updateError } = await supabase
@@ -72,7 +114,7 @@ function ConfigurationPage() {
 
       if (passwordError) {
         if (
-          passwordError.message ==
+          passwordError.message ===
           'New password should be different from the old password.'
         ) {
           toast({
@@ -101,10 +143,7 @@ function ConfigurationPage() {
   return (
     <CardPages>
       <h1 className="text-gray-900 font-bold text-2xl">Configurações</h1>
-      <form
-        className="gap-4 flex flex-col w-1/3"
-        onSubmit={handleUpdateProfile}
-      >
+      <form className="gap-4 flex flex-col w-1/3" onSubmit={handleUpdateProfile}>
         <div className="gap-2 flex flex-col">
           <Label>Nome</Label>
           <Input
@@ -120,6 +159,8 @@ function ConfigurationPage() {
         </div>
         <div className="gap-2 flex flex-col">
           <Label>Foto</Label>
+          {profileImage && <img src={profileImage} alt="Profile" className="h-20 w-20 rounded-full" />}
+          <Input type="file" id="profileImage" onChange={handleImageChange} />
         </div>
         <div className="gap-2 flex flex-col">
           <Label>Senha nova</Label>
