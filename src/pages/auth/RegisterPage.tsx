@@ -84,7 +84,7 @@ function RegisterPage() {
     // Cria a empresa
     const { data: companyData, error: companyError } = await supabase
       .from('empresas')
-      .insert([{ nome: company }])
+      .insert([{ nome: company, userCreate:userId }])
       .select()
       .single();
 
