@@ -6,6 +6,7 @@ interface User {
   email: string;
   companyId: string;
   name: string;
+  foto: string;
 }
 
 interface AuthState {
