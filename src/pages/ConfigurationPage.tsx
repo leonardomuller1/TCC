@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
+import DataTable from '@/components/TableComponent';
 
 //auxilares
 import useAuthStore from '@/stores/useAuthStore';
@@ -87,7 +88,7 @@ function ConfigurationPage() {
       const { data: publicUrlData } = supabase.storage
         .from('imageUser')
         .getPublicUrl(`public/${user?.id}/${imageFile.name}`);
-      
+
       if (publicUrlData?.publicUrl) {
         updates.foto = publicUrlData.publicUrl;
       }
@@ -143,7 +144,10 @@ function ConfigurationPage() {
   return (
     <CardPages>
       <h1 className="text-gray-900 font-bold text-2xl">Configurações</h1>
-      <form className="gap-4 flex flex-col w-1/3" onSubmit={handleUpdateProfile}>
+      <form
+        className="gap-4 flex flex-col w-1/3"
+        onSubmit={handleUpdateProfile}
+      >
         <div className="gap-2 flex flex-col">
           <Label>Nome</Label>
           <Input
@@ -159,7 +163,13 @@ function ConfigurationPage() {
         </div>
         <div className="gap-2 flex flex-col">
           <Label>Foto</Label>
-          {profileImage && <img src={profileImage} alt="Profile" className="h-20 w-20 rounded-full" />}
+          {profileImage && (
+            <img
+              src={profileImage}
+              alt="Profile"
+              className="h-20 w-20 rounded-full"
+            />
+          )}
           <Input type="file" id="profileImage" onChange={handleImageChange} />
         </div>
         <div className="gap-2 flex flex-col">
@@ -173,6 +183,23 @@ function ConfigurationPage() {
         </div>
         <Button type="submit">Alterar dados</Button>
       </form>
+      <div className="pt-4">
+        <h2 className="text-lg text-gray-900 font-semibold">
+          Membros da equipe
+        </h2>
+        <DataTable
+          headers={['Nome', 'Teste']}
+          rows={[
+            ['Leonardo Muller', 'teste'],
+            ['Leonardo Muller', 'teste'],
+            ['Leonardo Muller', 'teste'],
+          ]}
+          onAddClick={() => console.log('Adicionar clicado!')}
+          onOptionsClick={(rowIndex) =>
+            console.log(`Opções clicadas na linha ${rowIndex}!`)
+          }
+        />{' '}
+      </div>
       <Toaster />
     </CardPages>
   );
