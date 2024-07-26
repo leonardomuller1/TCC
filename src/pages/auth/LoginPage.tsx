@@ -66,7 +66,7 @@ function LoginPage() {
 
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
-      .select('id, nome, email, empresa')
+      .select('id, nome, email, empresa,foto')
       .eq('id', userId)
       .single();
 
@@ -101,6 +101,7 @@ function LoginPage() {
       companyId: companyData.id,
       email: userData.email,
       name: userData.nome,
+      foto: userData.foto,
     };
 
     setUserId(userId);
