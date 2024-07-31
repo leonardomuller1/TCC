@@ -7,7 +7,7 @@ interface CardProps {
 
 const CardPages: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <div className="bg-white">
+    <div className="bg-gray-50">
       <HeaderTopDashboard />
       <div
         className={`mt-8 mx-32 p-6 flex flex-col gap-4 border rounded-lg border-gray-200 bg-gray-50 ${className}`}
