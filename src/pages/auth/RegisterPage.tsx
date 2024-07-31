@@ -28,7 +28,7 @@ function RegisterPage() {
 
     setLoading(true);
 
-    // Verificacao se ja tem conta neste email
+    // Verificação se já tem conta neste email
     const { data: existingUser, error: checkError } = await supabase
       .from('usuarios')
       .select('email')
@@ -81,10 +81,17 @@ function RegisterPage() {
       return;
     }
 
+    // Gera a URL do avatar com as iniciais
+    const initials = name
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
+    const avatarUrl = `https://ui-avatars.com/api/?name=${initials}&background=random&size=256`;
+
     // Cria a empresa
     const { data: companyData, error: companyError } = await supabase
       .from('empresas')
-      .insert([{ nome: company, userCreate:userId }])
+      .insert([{ nome: company, userCreate: userId }])
       .select()
       .single();
 
@@ -98,10 +105,18 @@ function RegisterPage() {
       return;
     }
 
-    // Cria o usuario com ID da empresa
+    // Cria o usuário com ID da empresa e avatar
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
-      .insert([{ id: userId, nome: name, email, empresa: companyData.id }])
+      .insert([
+        {
+          id: userId,
+          nome: name,
+          email,
+          empresa: companyData.id,
+          foto: avatarUrl,
+        },
+      ])
       .select()
       .single();
 
@@ -115,7 +130,7 @@ function RegisterPage() {
       return;
     }
 
-    // Adiciona o usuario a empresa
+    // Adiciona o usuário à empresa
     const { error: associacaoError } = await supabase
       .from('empresa_usuarios')
       .insert([{ empresa_id: companyData.id, usuario_id: userData.id }]);
