@@ -11,6 +11,7 @@ interface InputGroupProps {
   placeholder: string;
   value: string;
   divider: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void; 
 }
 
 const InputGroup: React.FC<InputGroupProps> = ({
@@ -20,6 +21,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
   placeholder,
   value,
   divider,
+  onChange
 }) => {
   return (
     <div className="max-w-2xl flex flex-col gap-2">
@@ -28,7 +30,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
         <h5 className='text-gray-500 text-sm font-normal'>{subtitle}</h5>
       </div>
       <Label>{label}</Label>
-      <Input placeholder={placeholder} value={value} />
+      <Input placeholder={placeholder} value={value} onChange={onChange}/>
       {divider && <div className="h-px w-full bg-gray-200"></div>}
     </div>
   );
