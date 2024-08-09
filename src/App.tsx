@@ -2,14 +2,17 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 //protecion routes
 import RedirectIfAuthenticated from './components/auth/RedirectIfAuthenticatedt';
-import ConfigurationPage from './pages/ConfigurationPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
-// pages
+// pages auth
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import UpdatePasswordPage from './pages/auth/UpdatePasswordPage';
+
+//pages dashboard
 import DashboardPage from './pages/DashboardPage';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import ProblemsPage from './pages/ProblemsPage';
+import ConfigurationPage from './pages/ConfigurationPage';
 
 function App() {
   return (
@@ -43,6 +46,9 @@ function App() {
         {/* Rotas protegidas */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/problema" element={<ProblemsPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/configuracao" element={<ConfigurationPage />} />
