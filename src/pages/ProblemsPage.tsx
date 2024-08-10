@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/supabaseClient';
-import useAuthStore from '@/stores/useAuthStore';
 
 //componentes
 import CardPages from '@/components/dashboard/CardPagesComponent';
 import InputGroup from '@/components/InputGroupComponent';
 import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/toaster';
+import { useToast } from '@/components/ui/use-toast';
+
+//auxiliares
+import { supabase } from '@/supabaseClient';
+import useAuthStore from '@/stores/useAuthStore';
 
 type Problema = {
   id: number;
@@ -24,6 +28,8 @@ type Problema = {
 const ProblemsPage = () => {
   const { user } = useAuthStore();
   const [problema, setProblema] = useState<Problema | null>(null);
+
+  //campos
   const [descricao, setDescricao] = useState('');
   const [resolvido, setResolvido] = useState('');
   const [impacto, setImpacto] = useState('');
@@ -32,10 +38,17 @@ const ProblemsPage = () => {
   const [segmento, setSegmento] = useState('');
   const [gravidade, setGravidade] = useState('');
 
+  const { toast } = useToast();
+
+
   useEffect(() => {
     const fetchProblemas = async () => {
       if (!user || !user.companyId) {
-        console.error('Usuário não autenticado ou companyId ausente');
+        toast({
+          description: 'Usuário não autenticado ou companyId ausente',
+          className: 'bg-red-300',
+          duration: 4000,
+        });
         return;
       }
 
@@ -95,10 +108,11 @@ const ProblemsPage = () => {
           setGravidade(novoProblema.gravidade);
         }
       } catch (error) {
-        console.error(
-          'Erro ao buscar ou criar problemas:',
-          (error as Error).message,
-        );
+        toast({
+          description: (error as Error).message,
+          className: 'bg-red-300',
+          duration: 4000,
+        });
       }
     };
 
@@ -142,10 +156,17 @@ const ProblemsPage = () => {
             }
           : null,
       );
-      alert('Descrição salva com sucesso!');
+      toast({
+        description:'Dados salvos com sucesso',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
     } catch (error) {
-      console.error('Erro ao salvar descrição:', (error as Error).message);
-      alert('Erro ao salvar descrição');
+      toast({
+        description: (error as Error).message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
     }
   };
 
@@ -224,9 +245,12 @@ const ProblemsPage = () => {
             placeholder="Avalie a gravidade do problema para os clientes afetados. Ex: 'A falta de moradia acessível resulta em uma qualidade de vida reduzida e problemas de saúde mental.'"
             divider
           />
-          <Button onClick={handleSave} className='max-w-2xl'>Salvar</Button>
+          <Button onClick={handleSave} className="max-w-2xl">
+            Salvar
+          </Button>
         </>
       )}
+      <Toaster />
     </CardPages>
   );
 };
