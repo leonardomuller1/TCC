@@ -1,7 +1,6 @@
 //componentes
-
-import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 
 //interface
 interface InputGroupProps {
@@ -11,7 +10,8 @@ interface InputGroupProps {
   placeholder: string;
   value: string;
   divider: boolean;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void; 
+  rows: number;
+  onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void; 
 }
 
 const InputGroup: React.FC<InputGroupProps> = ({
@@ -21,6 +21,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
   placeholder,
   value,
   divider,
+  rows,
   onChange
 }) => {
   return (
@@ -30,7 +31,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
         <h5 className='text-gray-500 text-sm font-normal'>{subtitle}</h5>
       </div>
       <Label>{label}</Label>
-      <Input placeholder={placeholder} value={value} onChange={onChange}/>
+      <Textarea rows={rows} placeholder={placeholder} value={value} onChange={onChange}/>
       {divider && <div className="h-px w-full bg-gray-200"></div>}
     </div>
   );
