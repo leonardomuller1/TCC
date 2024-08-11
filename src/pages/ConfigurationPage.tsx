@@ -302,10 +302,9 @@ function ConfigurationPage() {
     try {
       // Verifica se o usuário é o criador da empresa
       const { data: companyData, error: companyError } = await supabase
-        .from('empresa')
+        .from('empresas')
         .select('userCreate')
-        .eq('userCreate', userId)
-        .single();
+        .eq('userCreate', userId);
   
       if (companyError) {
         toast({
@@ -316,7 +315,7 @@ function ConfigurationPage() {
         return;
       }
   
-      if (companyData) {
+      if (companyData && companyData.length > 0) {
         toast({
           description: 'O criador da empresa não pode ser excluído.',
           className: 'bg-red-300',
@@ -368,6 +367,7 @@ function ConfigurationPage() {
       });
     }
   };
+  
   
   const handleViewUserDetails = (rowIndex: number) => {
     const userId = teamMembers[rowIndex].id;
