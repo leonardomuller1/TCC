@@ -12,6 +12,7 @@ import UpdatePasswordPage from './pages/auth/UpdatePasswordPage';
 //pages dashboard
 import DashboardPage from './pages/DashboardPage';
 import ProblemsPage from './pages/ProblemsPage';
+import ClientsPage from './pages/ClientsPage';
 import ConfigurationPage from './pages/ConfigurationPage';
 
 function App() {
@@ -49,6 +50,9 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/problema" element={<ProblemsPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/clientes" element={<ClientsPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/configuracao" element={<ConfigurationPage />} />
