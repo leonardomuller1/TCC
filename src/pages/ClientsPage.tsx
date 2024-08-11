@@ -16,6 +16,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Auxiliares
 import useAuthStore from '@/stores/useAuthStore';
@@ -39,11 +48,14 @@ const ClientsPage = () => {
   const { user } = useAuthStore();
   const { toast } = useToast();
 
-  const [segmentosClientes, setSegmentosClientes] = useState<SegmentoClientes[]>([]);
+  const [segmentosClientes, setSegmentosClientes] = useState<
+    SegmentoClientes[]
+  >([]);
   const [openDialogNewSegmento, setOpenDialogNewSegmento] = useState(false);
   const [openDialogEditSegmento, setOpenDialogEditSegmento] = useState(false);
   const [newSegmento, setNewSegmento] = useState<Partial<SegmentoClientes>>({});
-  const [selectedSegmento, setSelectedSegmento] = useState<SegmentoClientes | null>(null);
+  const [selectedSegmento, setSelectedSegmento] =
+    useState<SegmentoClientes | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +77,6 @@ const ClientsPage = () => {
 
         if (segmentoError) throw new Error(segmentoError.message);
         setSegmentosClientes(segmentoData || []);
-
       } catch (error) {
         toast({
           description: (error as Error).message,
@@ -132,8 +143,8 @@ const ClientsPage = () => {
       if (error) throw error;
       setSegmentosClientes(
         segmentosClientes.map((seg) =>
-          seg.id === selectedSegmento.id ? selectedSegmento : seg
-        )
+          seg.id === selectedSegmento.id ? selectedSegmento : seg,
+        ),
       );
       setOpenDialogEditSegmento(false);
       toast({
@@ -158,7 +169,9 @@ const ClientsPage = () => {
         .delete()
         .eq('id', selectedSegmento.id);
       if (error) throw error;
-      setSegmentosClientes(segmentosClientes.filter((seg) => seg.id !== selectedSegmento.id));
+      setSegmentosClientes(
+        segmentosClientes.filter((seg) => seg.id !== selectedSegmento.id),
+      );
       setOpenDialogEditSegmento(false);
       toast({
         description: 'Segmento de Clientes excluído com sucesso!',
@@ -175,9 +188,11 @@ const ClientsPage = () => {
   };
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e:
+      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+      | { name: string; value: string },
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = 'target' in e ? e.target : e;
     if (openDialogNewSegmento) {
       setNewSegmento((prev) => ({ ...prev, [name]: value }));
     } else if (openDialogEditSegmento && selectedSegmento) {
@@ -185,19 +200,29 @@ const ClientsPage = () => {
     }
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    handleChange({ name, value });
+  };
+
   return (
     <CardPages>
       <h1 className="text-gray-900 font-bold text-2xl">Segmento de Clientes</h1>
       <DataTable
         headers={['Nome', 'Descrição']}
-        rows={segmentosClientes.map((segmento) => [segmento.nome, segmento.descricao])}
+        rows={segmentosClientes.map((segmento) => [
+          segmento.nome,
+          segmento.descricao,
+        ])}
         onAddClick={handleAddSegmento}
         onOptionsClick={handleEditSegmento}
       />
       <Toaster />
 
       {/* Modal para adicionar novo segmento */}
-      <Dialog open={openDialogNewSegmento} onOpenChange={setOpenDialogNewSegmento}>
+      <Dialog
+        open={openDialogNewSegmento}
+        onOpenChange={setOpenDialogNewSegmento}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Adicionar Novo Segmento</DialogTitle>
@@ -238,55 +263,73 @@ const ClientsPage = () => {
             </div>
             <div className="mb-4">
               <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
-              <select
-                id="tipo_cliente"
-                name="tipo_cliente"
-                value={newSegmento.tipo_cliente || ''}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md"
+              <Select
+                onValueChange={(value) =>
+                  handleSelectChange('tipo_cliente', value)
+                }
               >
-                <option value="">Selecione o tipo de cliente</option>
-                <option value="Individual">Individual</option>
-                <option value="Empresa">Empresa</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o tipo de cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="B2B">
+                      B2B (Empresa para Empresa)
+                    </SelectItem>
+                    <SelectItem value="B2C">
+                      B2C (Empresa para Consumidor)
+                    </SelectItem>
+                    <SelectItem value="B2G">
+                      B2G (Empresa para Governo)
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <div className="mb-4">
               <Label htmlFor="vai_atender">Vai Atender</Label>
-              <select
-                id="vai_atender"
-                name="vai_atender"
-                value={newSegmento.vai_atender ? 'Sim' : 'Não'}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md"
+              <Select
+                onValueChange={(value) =>
+                  handleSelectChange('vai_atender', value)
+                }
               >
-                <option value="true">Sim</option>
-                <option value="false">Não</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sim ou Não" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="true">Sim</SelectItem>
+                    <SelectItem value="false">Não</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <div className="mb-4">
               <Label htmlFor="justificativa">Justificativa</Label>
-              <textarea
+              <Textarea
                 id="justificativa"
                 name="justificativa"
                 value={newSegmento.justificativa || ''}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md"
               />
             </div>
             <DialogFooter>
-              <Button type="submit">Salvar Segmento</Button>
+              <Button type="submit">Salvar</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* Modal para editar segmento existente */}
-      <Dialog open={openDialogEditSegmento} onOpenChange={setOpenDialogEditSegmento}>
+      <Dialog
+        open={openDialogEditSegmento}
+        onOpenChange={setOpenDialogEditSegmento}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Segmento</DialogTitle>
             <DialogDescription>
-              Edite as informações do segmento abaixo.
+              Altere as informações abaixo para editar o segmento.
             </DialogDescription>
           </DialogHeader>
           {selectedSegmento && (
@@ -297,7 +340,7 @@ const ClientsPage = () => {
                   type="text"
                   id="nome"
                   name="nome"
-                  value={selectedSegmento.nome}
+                  value={selectedSegmento.nome || ''}
                   onChange={handleChange}
                 />
               </div>
@@ -307,7 +350,7 @@ const ClientsPage = () => {
                   type="text"
                   id="descricao"
                   name="descricao"
-                  value={selectedSegmento.descricao}
+                  value={selectedSegmento.descricao || ''}
                   onChange={handleChange}
                 />
               </div>
@@ -317,51 +360,71 @@ const ClientsPage = () => {
                   type="text"
                   id="area"
                   name="area"
-                  value={selectedSegmento.area}
+                  value={selectedSegmento.area || ''}
                   onChange={handleChange}
                 />
               </div>
               <div className="mb-4">
                 <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
-                <select
-                  id="tipo_cliente"
-                  name="tipo_cliente"
-                  value={selectedSegmento.tipo_cliente}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md"
+                <Select
+                  onValueChange={(value) =>
+                    handleSelectChange('tipo_cliente', value)
+                  }
                 >
-                  <option value="Individual">Individual</option>
-                  <option value="Empresa">Empresa</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione o tipo de cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="B2B">
+                        B2B (Empresa para Empresa)
+                      </SelectItem>
+                      <SelectItem value="B2C">
+                        B2C (Empresa para Consumidor)
+                      </SelectItem>
+                      <SelectItem value="B2G">
+                        B2G (Empresa para Governo)
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="mb-4">
                 <Label htmlFor="vai_atender">Vai Atender</Label>
-                <select
-                  id="vai_atender"
-                  name="vai_atender"
-                  value={selectedSegmento.vai_atender ? 'Sim' : 'Não'}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md"
+                <Select
+                  onValueChange={(value) =>
+                    handleSelectChange('vai_atender', value)
+                  }
                 >
-                  <option value="true">Sim</option>
-                  <option value="false">Não</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sim ou Não" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="true">Sim</SelectItem>
+                      <SelectItem value="false">Não</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="mb-4">
                 <Label htmlFor="justificativa">Justificativa</Label>
-                <textarea
+                <Textarea
                   id="justificativa"
                   name="justificativa"
-                  value={selectedSegmento.justificativa}
+                  value={selectedSegmento.justificativa || ''}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md"
                 />
               </div>
               <DialogFooter>
-                <Button type="button" onClick={handleDeleteSegmento} className="bg-red-500 hover:bg-red-700">
-                  Excluir Segmento
+                <Button type="submit">Editar</Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteSegmento}
+                >
+                  Excluir
                 </Button>
-                <Button type="submit">Salvar Alterações</Button>
               </DialogFooter>
             </form>
           )}
