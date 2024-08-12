@@ -21,6 +21,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 // Auxiliares
@@ -57,6 +65,9 @@ const PublicoAlvo = () => {
   const [selectedPublico, setSelectedPublico] = useState<PublicoAlvo | null>(
     null,
   );
+  const [segmentosCliente, setSegmentosCliente] = useState<
+    { id: number; nome: string }[]
+  >([]);
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -85,11 +96,41 @@ const PublicoAlvo = () => {
     }
   }, [user, toast]);
 
+  const fetchSegmentosCliente = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('segmentoclientes')
+        .select('id, nome');
+      if (error) throw new Error(error.message);
+      setSegmentosCliente(data || []);
+    } catch (error) {
+      toast({
+        description: (error as Error).message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchSegmentosCliente();
+  }, [fetchData, fetchSegmentosCliente]);
+
+  // Função para criar um mapeamento de IDs para nomes
+  const createSegmentoMap = (segmentos: { id: number; nome: string }[]) => {
+    const map: { [key: number]: string } = {};
+    segmentos.forEach((segmento) => {
+      map[segmento.id] = segmento.nome;
+    });
+    return map;
+  };
+
+  // Crie o mapeamento após a obtenção dos dados
+  const segmentoMap = createSegmentoMap(segmentosCliente);
 
   const handleAddPublico = () => {
+    clearForm();
     setOpenDialogNewPublico(true);
   };
 
@@ -106,6 +147,7 @@ const PublicoAlvo = () => {
         {
           ...newPublico,
           empresa_id: user?.companyId,
+          segmento_cliente: parseInt(newPublico.segmento_cliente || '', 10), // Certifica-se de que o valor é um número
         },
       ]);
 
@@ -117,7 +159,7 @@ const PublicoAlvo = () => {
         setPublicosAlvo([...publicosAlvo, data]);
       }
       fetchData();
-
+      clearForm();
       setOpenDialogNewPublico(false);
       toast({
         description: 'Público-alvo adicionado com sucesso!',
@@ -139,7 +181,13 @@ const PublicoAlvo = () => {
     try {
       const { error } = await supabase
         .from('publicoalvo')
-        .update({ ...selectedPublico })
+        .update({
+          ...selectedPublico,
+          segmento_cliente: parseInt(
+            selectedPublico.segmento_cliente || '',
+            10,
+          ), // Certifica-se de que o valor é um número
+        })
         .eq('id', selectedPublico.id);
       if (error) throw error;
       setPublicosAlvo(
@@ -147,6 +195,7 @@ const PublicoAlvo = () => {
           publico.id === selectedPublico.id ? selectedPublico : publico,
         ),
       );
+      clearForm();
       setOpenDialogEditPublico(false);
       toast({
         description: 'Público-alvo atualizado com sucesso!',
@@ -173,6 +222,7 @@ const PublicoAlvo = () => {
       setPublicosAlvo(
         publicosAlvo.filter((publico) => publico.id !== selectedPublico.id),
       );
+      clearForm();
       setOpenDialogEditPublico(false);
       toast({
         description: 'Público-alvo excluído com sucesso!',
@@ -200,20 +250,18 @@ const PublicoAlvo = () => {
       setSelectedPublico((prev) => prev && { ...prev, [name]: value });
     }
   };
-
+  
+  const clearForm = () => {
+    setNewPublico({});
+    setSelectedPublico(null);
+  };
+  
   return (
     <>
       <DataTable
-        headers={[
-          'Segmento Cliente',
-          'Segmento',
-          'Faixa Etária',
-          'Localização',
-          'Cargo',
-        ]}
+        headers={['Segmento Cliente', 'Faixa Etária', 'Localização', 'Cargo']}
         rows={publicosAlvo.map((publico) => [
-          publico.segmento_cliente,
-          publico.segmento,
+          segmentoMap[parseInt(publico.segmento_cliente, 10)] || 'Desconhecido', // Usando o nome do segmento
           publico.faixa_etaria,
           publico.localizacao,
           publico.cargo,
@@ -221,6 +269,7 @@ const PublicoAlvo = () => {
         onAddClick={handleAddPublico}
         onOptionsClick={handleEditPublico}
       />
+
       <Toaster />
 
       {/* Modal para adicionar novo público-alvo */}
@@ -240,23 +289,29 @@ const PublicoAlvo = () => {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <Label htmlFor="segmento_cliente">Segmento Cliente</Label>
-                <Input
-                  type="text"
-                  id="segmento_cliente"
+                <Select
                   name="segmento_cliente"
                   value={newPublico.segmento_cliente || ''}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="segmento">Segmento</Label>
-                <Input
-                  type="text"
-                  id="segmento"
-                  name="segmento"
-                  value={newPublico.segmento || ''}
-                  onChange={handleChange}
-                />
+                  onValueChange={(value) =>
+                    handleChange({ name: 'segmento_cliente', value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um segmento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {segmentosCliente.map((segmento) => (
+                        <SelectItem
+                          key={segmento.id}
+                          value={segmento.id.toString()} // Convertido para string
+                        >
+                          {segmento.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="faixa_etaria">Faixa Etária</Label>
@@ -374,23 +429,29 @@ const PublicoAlvo = () => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <Label htmlFor="segmento_cliente">Segmento Cliente</Label>
-                  <Input
-                    type="text"
-                    id="segmento_cliente"
+                  <Select
                     name="segmento_cliente"
-                    value={selectedPublico.segmento_cliente || ''}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="segmento">Segmento</Label>
-                  <Input
-                    type="text"
-                    id="segmento"
-                    name="segmento"
-                    value={selectedPublico.segmento || ''}
-                    onChange={handleChange}
-                  />
+                    value={selectedPublico.segmento_cliente || ''} // Assegura que o valor é uma string
+                    onValueChange={(value) =>
+                      handleChange({ name: 'segmento_cliente', value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um segmento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {segmentosCliente.map((segmento) => (
+                          <SelectItem
+                            key={segmento.id}
+                            value={segmento.id.toString()} // Convertido para string
+                          >
+                            {segmento.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="faixa_etaria">Faixa Etária</Label>

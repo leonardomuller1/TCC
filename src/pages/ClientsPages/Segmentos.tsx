@@ -121,7 +121,7 @@ const Segmentos = () => {
         setSegmentosClientes([...segmentosClientes, data]);
       }
       fetchData();
-
+      clearForm();
       setOpenDialogNewSegmento(false);
       toast({
         description: 'Segmento de Clientes adicionado com sucesso!',
@@ -151,6 +151,7 @@ const Segmentos = () => {
           seg.id === selectedSegmento.id ? selectedSegmento : seg,
         ),
       );
+      clearForm();
       setOpenDialogEditSegmento(false);
       toast({
         description: 'Segmento de Clientes atualizado com sucesso!',
@@ -177,6 +178,7 @@ const Segmentos = () => {
       setSegmentosClientes(
         segmentosClientes.filter((seg) => seg.id !== selectedSegmento.id),
       );
+      clearForm();
       setOpenDialogEditSegmento(false);
       toast({
         description: 'Segmento de Clientes excluído com sucesso!',
@@ -207,6 +209,11 @@ const Segmentos = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     handleChange({ name, value });
+  };
+
+  const clearForm = () => {
+    setNewSegmento({});
+    setSelectedSegmento(null);
   };
 
   return (

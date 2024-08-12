@@ -108,7 +108,7 @@ const Canais = () => {
         setCanais([...canais, data]);
       }
       fetchData();
-
+      clearForm();
       setOpenDialogNewCanal(false);
       toast({
         description: 'Canal adicionado com sucesso!',
@@ -137,7 +137,8 @@ const Canais = () => {
         canais.map((canal) =>
           canal.id === selectedCanal.id ? selectedCanal : canal,
         ),
-      );
+      );      
+      clearForm();
       setOpenDialogEditCanal(false);
       toast({
         description: 'Canal atualizado com sucesso!',
@@ -164,6 +165,7 @@ const Canais = () => {
       setCanais(
         canais.filter((canal) => canal.id !== selectedCanal.id),
       );
+      clearForm();
       setOpenDialogEditCanal(false);
       toast({
         description: 'Canal excluído com sucesso!',
@@ -190,6 +192,11 @@ const Canais = () => {
     } else if (openDialogEditCanal && selectedCanal) {
       setSelectedCanal((prev) => prev && { ...prev, [name]: value });
     }
+  };
+
+  const clearForm = () => {
+    setNewCanal({});
+    setSelectedCanal(null);
   };
 
   return (
