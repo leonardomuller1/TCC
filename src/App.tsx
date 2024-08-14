@@ -14,6 +14,7 @@ import DashboardPage from './pages/DashboardPage';
 import ProblemsPage from './pages/ProblemsPage';
 import ClientsPage from './pages/ClientsPage';
 import ConfigurationPage from './pages/ConfigurationPage';
+import FinancialsPage from './pages/FinancialsPage';
 
 function App() {
   return (
@@ -53,6 +54,9 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/clientes" element={<ClientsPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/financeiro" element={<FinancialsPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/configuracao" element={<ConfigurationPage />} />

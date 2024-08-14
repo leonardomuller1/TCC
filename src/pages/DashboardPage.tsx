@@ -34,7 +34,7 @@ const DashboardPage: React.FC = () => {
           />
           <CardPost
             title="Estrutura de custos e receita"
-            link="/receita"
+            link="/financeiro"
             alt="Estrutura de custos e receita"
             image="./EstruturaDeCustos.png"
           />

@@ -8,7 +8,7 @@ type NamePageMap = {
   '/clientes': string;
   '/solucao': string;
   '/concorrentes': string;
-  '/receita': string;
+  '/financeiro': string;
   '/andamento': string;
   '/configuracao': string;
 };
@@ -18,7 +18,7 @@ const namePages: NamePageMap = {
   '/clientes': 'Segmento de clientes e Público-alvo',
   '/solucao': 'Solução e proposta de valor',
   '/concorrentes': 'Análise de concorrentes',
-  '/receita': 'Estrutura de custos e receita',
+  '/financeiro': 'Estrutura de custos e receita',
   '/andamento': 'Métricas chaves e andamento',
   '/configuracao': 'Configurações',
 };
