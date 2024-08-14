@@ -117,7 +117,7 @@ const ProblemsPage = () => {
     };
 
     fetchProblemas();
-  }, [user]);
+  });
 
   const handleSave = async () => {
     if (!problema || !problema.id) return;
