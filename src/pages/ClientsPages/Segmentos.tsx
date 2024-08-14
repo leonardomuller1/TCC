@@ -34,6 +34,7 @@ import {
 // Auxiliares
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
+import { PlusCircledIcon, TrashIcon } from '@radix-ui/react-icons';
 
 // Tipos
 type SegmentoClientes = {
@@ -45,6 +46,7 @@ type SegmentoClientes = {
   tipo_cliente: string;
   vai_atender: boolean;
   justificativa: string;
+  relations: string[]; // Nova coluna para relações
   created_at: string;
   updated_at: string;
 };
@@ -61,6 +63,8 @@ const Segmentos = () => {
   const [newSegmento, setNewSegmento] = useState<Partial<SegmentoClientes>>({});
   const [selectedSegmento, setSelectedSegmento] =
     useState<SegmentoClientes | null>(null);
+  const [relations, setRelations] = useState<string[]>([]);
+  const [newRelation, setNewRelation] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -100,6 +104,7 @@ const Segmentos = () => {
   const handleEditSegmento = (rowIndex: number) => {
     const segmento = segmentosClientes[rowIndex];
     setSelectedSegmento(segmento);
+    setRelations(segmento.relations || []);
     setOpenDialogEditSegmento(true);
   };
 
@@ -110,6 +115,7 @@ const Segmentos = () => {
         {
           ...newSegmento,
           empresa_id: user?.companyId,
+          relations,
         },
       ]);
 
@@ -143,7 +149,7 @@ const Segmentos = () => {
     try {
       const { error } = await supabase
         .from('segmentoclientes')
-        .update({ ...selectedSegmento })
+        .update({ ...selectedSegmento, relations })
         .eq('id', selectedSegmento.id);
       if (error) throw error;
       setSegmentosClientes(
@@ -214,17 +220,31 @@ const Segmentos = () => {
   const clearForm = () => {
     setNewSegmento({});
     setSelectedSegmento(null);
+    setRelations([]);
+    setNewRelation('');
+  };
+
+  const addRelation = () => {
+    if (newRelation.trim() !== '') {
+      setRelations((prev) => [...prev, newRelation]);
+      setNewRelation('');
+    }
+  };
+
+  const removeRelation = (index: number) => {
+    setRelations((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
     <>
       <DataTable
-        headers={['Nome', 'Área', 'Tipo de Cliente', 'Vai Atender']}
+        headers={['Nome', 'Área', 'Tipo de Cliente', 'Vai Atender', 'Relações']}
         rows={segmentosClientes.map((segmento) => [
           segmento.nome,
           segmento.area,
           segmento.tipo_cliente,
-          segmento.vai_atender ? 'Sim' : 'Não', // Convertendo o valor booleano diretamente
+          segmento.vai_atender ? 'Sim' : 'Não',
+          segmento.relations ? segmento.relations.join(', ') : '', // Verificação adicionada
         ])}
         onAddClick={handleAddSegmento}
         onOptionsClick={handleEditSegmento}
@@ -236,7 +256,7 @@ const Segmentos = () => {
         open={openDialogNewSegmento}
         onOpenChange={setOpenDialogNewSegmento}
       >
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Segmento</DialogTitle>
             <DialogDescription>
@@ -244,87 +264,125 @@ const Segmentos = () => {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveNewSegmento}>
-            <div className="mb-4">
-              <Label htmlFor="nome">Nome</Label>
-              <Input
-                type="text"
-                id="nome"
-                name="nome"
-                value={newSegmento.nome || ''}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-4">
-              <Label htmlFor="descricao">Descrição</Label>
-              <Input
-                type="text"
-                id="descricao"
-                name="descricao"
-                value={newSegmento.descricao || ''}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-4">
-              <Label htmlFor="area">Área</Label>
-              <Input
-                type="text"
-                id="area"
-                name="area"
-                value={newSegmento.area || ''}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-4">
-              <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
-              <Select
-                onValueChange={(value) =>
-                  handleSelectChange('tipo_cliente', value)
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione o tipo de cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="B2B">
-                      B2B (Empresa para Empresa)
-                    </SelectItem>
-                    <SelectItem value="B2C">
-                      B2C (Empresa para Consumidor)
-                    </SelectItem>
-                    <SelectItem value="B2G">
-                      B2G (Empresa para Governo)
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mb-4">
-              <Label htmlFor="vai_atender">Vai Atender</Label>
-              <Select
-                onValueChange={(value) =>
-                  handleSelectChange('vai_atender', value)
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sim ou Não" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="true">Sim</SelectItem>
-                    <SelectItem value="false">Não</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mb-4">
-              <Label htmlFor="justificativa">Justificativa</Label>
-              <Textarea
-                id="justificativa"
-                name="justificativa"
-                value={newSegmento.justificativa || ''}
-                onChange={handleChange}
-              />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <div className="mb-4">
+                  <Label htmlFor="nome">Nome</Label>
+                  <Input
+                    type="text"
+                    id="nome"
+                    name="nome"
+                    value={newSegmento.nome || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Input
+                    type="text"
+                    id="descricao"
+                    name="descricao"
+                    value={newSegmento.descricao || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="area">Área</Label>
+                  <Input
+                    type="text"
+                    id="area"
+                    name="area"
+                    value={newSegmento.area || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      handleSelectChange('tipo_cliente', value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o tipo de cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="B2B">
+                          B2B (Empresa para Empresa)
+                        </SelectItem>
+                        <SelectItem value="B2C">
+                          B2C (Empresa para Consumidor)
+                        </SelectItem>
+                        <SelectItem value="B2G">
+                          B2G (Empresa para Governo)
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="vai_atender">Vai Atender</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      handleSelectChange('vai_atender', value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sim ou Não" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="true">Sim</SelectItem>
+                        <SelectItem value="false">Não</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="justificativa">Justificativa</Label>
+                  <Textarea
+                    id="justificativa"
+                    name="justificativa"
+                    value={newSegmento.justificativa || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="mb-4">
+                  <Label htmlFor="relation">Adicionar Relação</Label>
+                  <div className="flex gap-4">
+                    <Input
+                      type="text"
+                      id="relation"
+                      name="relation"
+                      value={newRelation}
+                      onChange={(e) => setNewRelation(e.target.value)}
+                    />
+                    <button type="button" onClick={addRelation}>
+                      <PlusCircledIcon className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <Label htmlFor="relationList">Lista de Relações</Label>
+                  <ul>
+                    {relations.map((relation, index) => (
+                      <li
+                        key={index}
+                        className="flex justify-between items-center mb-2"
+                      >
+                        <span>{relation}</span>
+                        <button onClick={() => removeRelation(index)}>
+                          <TrashIcon className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button type="submit">Salvar</Button>
@@ -338,7 +396,7 @@ const Segmentos = () => {
         open={openDialogEditSegmento}
         onOpenChange={setOpenDialogEditSegmento}
       >
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Editar Segmento</DialogTitle>
             <DialogDescription>
@@ -347,88 +405,128 @@ const Segmentos = () => {
           </DialogHeader>
           {selectedSegmento && (
             <form onSubmit={handleSaveEditSegmento}>
-              <div className="mb-4">
-                <Label htmlFor="nome">Nome</Label>
-                <Input
-                  type="text"
-                  id="nome"
-                  name="nome"
-                  value={selectedSegmento.nome || ''}
-                  onChange={handleChange}
-                />
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div className="mb-4">
+                    <Label htmlFor="nome">Nome</Label>
+                    <Input
+                      type="text"
+                      id="nome"
+                      name="nome"
+                      value={selectedSegmento.nome || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="descricao">Descrição</Label>
+                    <Input
+                      type="text"
+                      id="descricao"
+                      name="descricao"
+                      value={selectedSegmento.descricao || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="area">Área</Label>
+                    <Input
+                      type="text"
+                      id="area"
+                      name="area"
+                      value={selectedSegmento.area || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
+                    <Select
+                      onValueChange={(value) =>
+                        handleSelectChange('tipo_cliente', value)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o tipo de cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="B2B">
+                            B2B (Empresa para Empresa)
+                          </SelectItem>
+                          <SelectItem value="B2C">
+                            B2C (Empresa para Consumidor)
+                          </SelectItem>
+                          <SelectItem value="B2G">
+                            B2G (Empresa para Governo)
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="vai_atender">Vai Atender</Label>
+                    <Select
+                      onValueChange={(value) =>
+                        handleSelectChange('vai_atender', value)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sim ou Não" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="true">Sim</SelectItem>
+                          <SelectItem value="false">Não</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justificativa">Justificativa</Label>
+                    <Textarea
+                      id="justificativa"
+                      name="justificativa"
+                      value={selectedSegmento.justificativa || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-4">
+                    <Label htmlFor="relation">Adicionar Relação</Label>
+                    <div className="flex gap-4">
+                      <Input
+                        type="text"
+                        id="relation"
+                        name="relation"
+                        value={newRelation}
+                        onChange={(e) => setNewRelation(e.target.value)}
+                      />
+                      <button type="button" onClick={addRelation}>
+                        <PlusCircledIcon className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <Label htmlFor="relationList">Lista de Relações</Label>
+                    <ul>
+                      {relations.map((relation, index) => (
+                        <li
+                          key={index}
+                          className="flex justify-between items-center mb-2"
+                        >
+                          <span>{relation}</span>
+                          <button onClick={() => removeRelation(index)}>
+                            <TrashIcon className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <div className="mb-4">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Input
-                  type="text"
-                  id="descricao"
-                  name="descricao"
-                  value={selectedSegmento.descricao || ''}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="mb-4">
-                <Label htmlFor="area">Área</Label>
-                <Input
-                  type="text"
-                  id="area"
-                  name="area"
-                  value={selectedSegmento.area || ''}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="mb-4">
-                <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
-                <Select
-                  onValueChange={(value) =>
-                    handleSelectChange('tipo_cliente', value)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione o tipo de cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="B2B">
-                        B2B (Empresa para Empresa)
-                      </SelectItem>
-                      <SelectItem value="B2C">
-                        B2C (Empresa para Consumidor)
-                      </SelectItem>
-                      <SelectItem value="B2G">
-                        B2G (Empresa para Governo)
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="mb-4">
-                <Label htmlFor="vai_atender">Vai Atender</Label>
-                <Select
-                  onValueChange={(value) =>
-                    handleSelectChange('vai_atender', value)
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sim ou Não" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="true">Sim</SelectItem>
-                      <SelectItem value="false">Não</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="mb-4">
-                <Label htmlFor="justificativa">Justificativa</Label>
-                <Textarea
-                  id="justificativa"
-                  name="justificativa"
-                  value={selectedSegmento.justificativa || ''}
-                  onChange={handleChange}
-                />
-              </div>
+
               <DialogFooter>
                 <Button type="submit">Editar</Button>
                 <Button
