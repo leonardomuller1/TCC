@@ -9,6 +9,8 @@ interface MyTableComponentProps {
   emptyStateMessage?: string;
   emptyStateDescription?: string;
   emptyStateImage?: string;
+  hidePlusIcon?: boolean;
+  externalAddButton?: React.ReactNode;
 }
 
 const DataTable: React.FC<MyTableComponentProps> = ({
@@ -18,10 +20,18 @@ const DataTable: React.FC<MyTableComponentProps> = ({
   onOptionsClick,
   emptyStateMessage = "No data available",
   emptyStateDescription = "Get started by adding a new item.",
-  emptyStateImage = "https://via.placeholder.com/150"
+  emptyStateImage = "https://via.placeholder.com/150",
+  hidePlusIcon = false,
+  externalAddButton
 }) => {
   return (
     <div>
+      {externalAddButton && (
+        <div className="mb-4 flex justify-end">
+          {externalAddButton}
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-lg border border-gray-200">
         {rows.length === 0 ? (
           <div className="text-center py-10">
@@ -33,13 +43,17 @@ const DataTable: React.FC<MyTableComponentProps> = ({
             <p className="text-gray-500">{emptyStateMessage}</p>
             <p className="text-gray-400 mt-2">{emptyStateDescription}</p>
             <div className="mt-4">
-              <button
-                onClick={onAddClick}
-                className="text-blue-500 hover:text-blue-700 focus:outline-none"
-              >
-                <PlusCircledIcon className="w-5 h-5 inline mr-1" />
-                Add New Item
-              </button>
+              {externalAddButton ? (
+                externalAddButton
+              ) : (
+                <button
+                  onClick={onAddClick}
+                  className="text-blue-500 hover:text-blue-700 focus:outline-none"
+                >
+                  <PlusCircledIcon className="w-5 h-5 inline mr-1" />
+                  Add New Item
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -55,18 +69,18 @@ const DataTable: React.FC<MyTableComponentProps> = ({
                     {header}
                   </th>
                 ))}
-                <th scope="col" className="relative px-2 py-3 text-right text-sm text-gray-500 font-semibold">
-                  <div className="flex justify-end">
-                    <button onClick={onAddClick} className="focus:outline-none">
-                      <PlusCircledIcon className="w-4 h-4 text-gray-500 hover:text-gray-700" />
-                    </button>
-                  </div>
-                </th>
+                  <th scope="col" className="relative px-2 py-3 text-right text-sm text-gray-500 font-semibold">
+                    <div className="flex justify-end">
+                      <button onClick={onAddClick} className="focus:outline-none">
+                      {!hidePlusIcon && (<PlusCircledIcon className="w-4 h-4 text-gray-500 hover:text-gray-700" />)}
+                      </button>
+                    </div>
+                  </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className='hover:bg-gray-100'>
+                <tr key={rowIndex} className='hover:bg-gray-100/30'>
                   {row.map((cell, cellIndex) => (
                     <td key={cellIndex} className="px-6 py-4 text-sm text-gray-800">
                       {cell}
