@@ -80,7 +80,7 @@ const DataTable: React.FC<MyTableComponentProps> = ({
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className='hover:bg-gray-100/30'>
+                <tr key={rowIndex} className='bg-gray-50 hover:bg-gray-100/30'>
                   {row.map((cell, cellIndex) => (
                     <td key={cellIndex} className="px-6 py-4 text-sm text-gray-800">
                       {cell}
