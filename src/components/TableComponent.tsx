@@ -1,5 +1,6 @@
 import React from 'react';
 import { PlusCircledIcon, DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { Button } from './ui/button';
 
 interface MyTableComponentProps {
   headers: string[];
@@ -18,9 +19,9 @@ const DataTable: React.FC<MyTableComponentProps> = ({
   rows,
   onAddClick,
   onOptionsClick,
-  emptyStateMessage = "No data available",
-  emptyStateDescription = "Get started by adding a new item.",
-  emptyStateImage = "https://via.placeholder.com/150",
+  emptyStateMessage = "Nenhum dado encontrado :(",
+  emptyStateDescription = "Vamos começar a planejar agora mesmo",
+  emptyStateImage = "./emptystate.png",
   hidePlusIcon = false,
   externalAddButton
 }) => {
@@ -37,7 +38,7 @@ const DataTable: React.FC<MyTableComponentProps> = ({
           <div className="text-center py-10">
             {emptyStateImage && (
               <div className="mb-4">
-                <img src={emptyStateImage} alt="Empty State" className="mx-auto h-40 w-40 object-contain" />
+                <img src={emptyStateImage} alt="Empty State" className="mx-auto h-80 w-80 object-contain" />
               </div>
             )}
             <p className="text-gray-500">{emptyStateMessage}</p>
@@ -46,13 +47,12 @@ const DataTable: React.FC<MyTableComponentProps> = ({
               {externalAddButton ? (
                 externalAddButton
               ) : (
-                <button
+                <Button
                   onClick={onAddClick}
-                  className="text-blue-500 hover:text-blue-700 focus:outline-none"
                 >
                   <PlusCircledIcon className="w-5 h-5 inline mr-1" />
-                  Add New Item
-                </button>
+                  Adicionar nova informação
+                </Button>
               )}
             </div>
           </div>
