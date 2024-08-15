@@ -1,7 +1,17 @@
+import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '../../supabaseClient';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type NamePageMap = {
   '/problema': string;
@@ -33,6 +43,7 @@ type User = {
 
 function HeaderTopDashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname as keyof NamePageMap;
   const dynamicName = namePages[currentPath] || '';
   const { userId, user, setUser } = useAuthStore();
@@ -40,10 +51,9 @@ function HeaderTopDashboard() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (userId) {
-        // Selecionando somente os campos nome e foto do usuário
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
-          .select('nome, foto, email, empresa') // Inclua os campos necessários
+          .select('nome, foto, email, empresa')
           .eq('id', userId)
           .single();
 
@@ -52,7 +62,6 @@ function HeaderTopDashboard() {
           return;
         }
 
-        // Selecionando somente o ID da empresa
         const { data: companyData, error: companyError } = await supabase
           .from('empresas')
           .select('id')
@@ -64,7 +73,6 @@ function HeaderTopDashboard() {
           return;
         }
 
-        // Atualizando o estado com todos os campos necessários
         const userWithCompanyId: User = {
           id: userId,
           name: userData.nome,
@@ -79,6 +87,16 @@ function HeaderTopDashboard() {
 
     fetchUserData();
   }, [userId, setUser]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Erro ao fazer logout:', error.message);
+    } else {
+      setUser(null);
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="w-full bg-white border-b border-gray-200 py-4 px-32">
@@ -100,13 +118,27 @@ function HeaderTopDashboard() {
             <p className="text-gray-900 font-normal text-sm">
               Bem-vindo, {user.name}
             </p>
-            <a href="/configuracao">
-              <img
-                src={user.foto}
-                alt={`${user.name}'s profile`}
-                className="w-8 h-8 rounded-full"
-              />
-            </a>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost">
+                  <img
+                    src={user.foto}
+                    alt={`${user.name}'s profile`}
+                    className="w-8 h-8 rounded-full"
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Opções</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <a href="/configuracao">Configurações</a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>
