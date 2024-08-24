@@ -1,9 +1,9 @@
 
 // Componentes
 import CardPages from '@/components/dashboard/CardPagesComponent';
-import Segmentos from './ClientsPages/Segmentos';
-import PublicoAlvo from './ClientsPages/PublicoAlvo';
-import Canais from './ClientsPages/Canal';
+import Segmentos from './ClientsSubPages/Segmentos';
+import PublicoAlvo from './ClientsSubPages/PublicoAlvo';
+import Canais from './ClientsSubPages/Canal';
 
 const ClientsPage = () => {
   return (
