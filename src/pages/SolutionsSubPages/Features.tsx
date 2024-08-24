@@ -56,8 +56,9 @@ const Features = () => {
     useState(false);
   const [openDialogEditFuncionalidade, setOpenDialogEditFuncionalidade] =
     useState(false);
-  const [newFuncionalidade, setNewFuncionalidade] =
-    useState<Partial<Funcionalidade>>({});
+  const [newFuncionalidade, setNewFuncionalidade] = useState<
+    Partial<Funcionalidade>
+  >({});
   const [selectedFuncionalidade, setSelectedFuncionalidade] =
     useState<Funcionalidade | null>(null);
 
@@ -72,10 +73,11 @@ const Features = () => {
     }
 
     try {
-      const { data: funcionalidadeData, error: funcionalidadeError } = await supabase
-        .from('funcionalidades')
-        .select('*')
-        .eq('empresa_id', user.companyId);
+      const { data: funcionalidadeData, error: funcionalidadeError } =
+        await supabase
+          .from('funcionalidades')
+          .select('*')
+          .eq('empresa_id', user.companyId);
 
       if (funcionalidadeError) throw new Error(funcionalidadeError.message);
       setFuncionalidades(funcionalidadeData || []);
@@ -136,7 +138,9 @@ const Features = () => {
     }
   };
 
-  const handleSaveEditFuncionalidade = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSaveEditFuncionalidade = async (
+    e: FormEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
     if (!selectedFuncionalidade) return;
     try {
@@ -230,11 +234,26 @@ const Features = () => {
       </h5>
 
       <DataTable
-        headers={['Título da Funcionalidade']}
-        rows={funcionalidades.map((funcionalidade) => [funcionalidade.titulo])}
+        headers={['Título da Funcionalidade', 'Prioridade']}
+        rows={funcionalidades.map((funcionalidade) => [
+          funcionalidade.titulo,
+          <span
+            key={funcionalidade.id}
+            className={
+              funcionalidade.prioridade === 'Alta'
+                ? 'bg-red-200 text-red-800 px-2 py-1 rounded'
+                : funcionalidade.prioridade === 'Média'
+                  ? 'bg-orange-200 text-orange-800 px-2 py-1 rounded'
+                  : 'bg-green-200 text-green-800 px-2 py-1 rounded'
+            }
+          >
+            {funcionalidade.prioridade}
+          </span>,
+        ])}
         onAddClick={handleAddFuncionalidade}
         onOptionsClick={handleEditFuncionalidade}
       />
+
       <Toaster />
 
       {/* Modal para adicionar nova funcionalidade */}
