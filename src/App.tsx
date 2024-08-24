@@ -13,8 +13,9 @@ import UpdatePasswordPage from './pages/auth/UpdatePasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import ProblemsPage from './pages/ProblemsPage';
 import ClientsPage from './pages/ClientsPage';
-import ConfigurationPage from './pages/ConfigurationPage';
+import SolutionPage from './pages/SolutionPage';
 import FinancialsPage from './pages/FinancialsPage';
+import ConfigurationPage from './pages/ConfigurationPage';
 
 function App() {
   return (
@@ -54,6 +55,9 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/clientes" element={<ClientsPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/solucao" element={<SolutionPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/financeiro" element={<FinancialsPage />} />
