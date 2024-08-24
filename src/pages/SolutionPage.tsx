@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 //componentes
 import CardPages from '@/components/dashboard/CardPagesComponent';
 import InputGroup from '@/components/InputGroupComponent';
+import Benefits from './SolutionsSubPages/Benefits';
+import Features from './SolutionsSubPages/Features';
+import CustomerExperience from './SolutionsSubPages/CustomerExperience';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,8 +13,6 @@ import { useToast } from '@/components/ui/use-toast';
 //auxiliares
 import { supabase } from '@/supabaseClient';
 import useAuthStore from '@/stores/useAuthStore';
-import Benefits from './SolutionsSubPages/Benefits';
-import Features from './SolutionsSubPages/Features';
 
 type Solucao = {
   id: number;
@@ -171,6 +172,9 @@ const SolutionPage = () => {
           <Benefits/>
 
           <Features/>
+
+          <CustomerExperience/>
+          
           <InputGroup
             title="Proposta de Valor"
             subtitle={
