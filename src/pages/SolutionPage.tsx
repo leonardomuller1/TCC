@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 //auxiliares
 import { supabase } from '@/supabaseClient';
 import useAuthStore from '@/stores/useAuthStore';
+import Benefits from './SolutionsSubPages/Benefits';
 
 type Solucao = {
   id: number;
@@ -166,6 +167,8 @@ const SolutionPage = () => {
             divider
           />
 
+          <Benefits/>
+          
           <InputGroup
             title="Proposta de Valor"
             subtitle={
