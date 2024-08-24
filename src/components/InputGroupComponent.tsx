@@ -1,11 +1,12 @@
 //componentes
+import { ReactNode } from 'react';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 
 //interface
 interface InputGroupProps {
   title?: string;
-  subtitle?: string;
+  subtitle?: string  | ReactNode;
   label: string;
   placeholder: string;
   value: string;
