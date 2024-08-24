@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 
 interface MyTableComponentProps {
   headers: string[];
-  rows: string[][];
+  rows: React.ReactNode[][];
   onAddClick: () => void;
   onOptionsClick: (rowIndex: number) => void;
   emptyStateMessage?: string;
