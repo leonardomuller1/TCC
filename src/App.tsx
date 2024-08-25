@@ -16,6 +16,7 @@ import ClientsPage from './pages/ClientsPage';
 import SolutionPage from './pages/SolutionPage';
 import FinancialsPage from './pages/FinancialsPage';
 import ConfigurationPage from './pages/ConfigurationPage';
+import CompetitorAnalysis from './pages/CompetitorAnalysisPage';
 
 function App() {
   return (
@@ -58,6 +59,9 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/solucao" element={<SolutionPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/concorrentes" element={<CompetitorAnalysis />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/financeiro" element={<FinancialsPage />} />
