@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/supabaseClient";
-import useAuthStore from "@/stores/useAuthStore";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/supabaseClient';
+import useAuthStore from '@/stores/useAuthStore';
 import { useToast } from '@/components/ui/use-toast';
+import CardPages from '@/components/dashboard/CardPagesComponent';
+import { Input } from '@/components/ui/input'; // Componente Input
+import { Checkbox } from '@/components/ui/checkbox'; // Componente Checkbox
+import { TrashIcon, PlusIcon } from '@radix-ui/react-icons'; // ícones do Radix
 
 interface TableData {
   [key: string]: { [key: string]: boolean };
 }
 
-const DynamicTable: React.FC = () => {
+const CompetitorAnalysis: React.FC = () => {
   const { user } = useAuthStore();
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<string[]>([]);
@@ -21,7 +25,6 @@ const DynamicTable: React.FC = () => {
       if (!user || !user.companyId) {
         toast({
           description: 'Usuário não autenticado ou companyId ausente',
-          className: 'bg-red-300',
           duration: 4000,
         });
         return;
@@ -29,9 +32,9 @@ const DynamicTable: React.FC = () => {
 
       try {
         const { data, error } = await supabase
-          .from("competitors")
-          .select("*")
-          .eq("empresa_id", user.companyId)
+          .from('competitors')
+          .select('*')
+          .eq('empresa_id', user.companyId)
           .limit(1)
           .single();
 
@@ -42,20 +45,19 @@ const DynamicTable: React.FC = () => {
           setRows(data.linhas);
           setTableData(data.dados);
         } else {
-          // Inicializar dados padrão caso não exista registro
-          const defaultColumns = ["Column 1"];
-          const defaultRows = ["Row 1"];
+          const defaultColumns = ['Empresa X'];
+          const defaultRows = ['CRUD'];
           const defaultData: TableData = {
-            "Row 1": { "Column 1": false },
+            CRUD: { 'Empresa X': false },
           };
-          
+
           setColumns(defaultColumns);
           setRows(defaultRows);
           setTableData(defaultData);
           saveData(defaultColumns, defaultRows, defaultData);
         }
       } catch (error) {
-        console.error("Erro ao carregar os dados:", error);
+        console.error('Erro ao carregar os dados:', error);
       } finally {
         setLoading(false);
       }
@@ -64,27 +66,32 @@ const DynamicTable: React.FC = () => {
     fetchData();
   }, [user, toast]);
 
-  const saveData = async (updatedColumns: string[], updatedRows: string[], updatedData: TableData) => {
+  const saveData = async (
+    updatedColumns: string[],
+    updatedRows: string[],
+    updatedData: TableData,
+  ) => {
     try {
       const uniqueName = `competitors_${user?.companyId}`;
-      const { error } = await supabase
-        .from("competitors")
-        .upsert({
+      const { error } = await supabase.from('competitors').upsert(
+        {
           empresa_id: user?.companyId,
-          name: uniqueName, // Usando um nome único
+          name: uniqueName,
           colunas: updatedColumns,
           linhas: updatedRows,
           dados: updatedData,
-        }, { onConflict: ['empresa_id'] }); // Garante que o registro existente seja atualizado
+        },
+        { onConflict: ['empresa_id'] },
+      );
 
       if (error) throw new Error(error.message);
     } catch (error) {
-      console.error("Erro ao salvar os dados:", error);
+      console.error('Erro ao salvar os dados:', error);
     }
   };
 
   const handleAddColumn = () => {
-    const newColumnName = `Column ${columns.length + 1}`;
+    const newColumnName = `Empresa ${String.fromCharCode(65 + columns.length)}`;
     const updatedColumns = [...columns, newColumnName];
 
     const newTableData = { ...tableData };
@@ -101,7 +108,7 @@ const DynamicTable: React.FC = () => {
   };
 
   const handleAddRow = () => {
-    const newRowName = `Row ${rows.length + 1}`;
+    const newRowName = `Funcionalidade ${rows.length + 1}`;
     const updatedRows = [...rows, newRowName];
 
     const newTableData = { ...tableData };
@@ -109,6 +116,32 @@ const DynamicTable: React.FC = () => {
     columns.forEach((column) => {
       newTableData[newRowName][column] = false;
     });
+
+    setRows(updatedRows);
+    setTableData(newTableData);
+    saveData(columns, updatedRows, newTableData);
+  };
+
+  const handleDeleteColumn = (colIndex: number) => {
+    const columnToDelete = columns[colIndex];
+    const updatedColumns = columns.filter((_, index) => index !== colIndex);
+
+    const newTableData = { ...tableData };
+    Object.keys(newTableData).forEach((row) => {
+      delete newTableData[row][columnToDelete];
+    });
+
+    setColumns(updatedColumns);
+    setTableData(newTableData);
+    saveData(updatedColumns, rows, newTableData);
+  };
+
+  const handleDeleteRow = (rowIndex: number) => {
+    const rowToDelete = rows[rowIndex];
+    const updatedRows = rows.filter((_, index) => index !== rowIndex);
+
+    const newTableData = { ...tableData };
+    delete newTableData[rowToDelete];
 
     setRows(updatedRows);
     setTableData(newTableData);
@@ -158,54 +191,88 @@ const DynamicTable: React.FC = () => {
   }
 
   return (
-    <div>
-      <button onClick={handleAddColumn}>Add Column</button>
-      <button onClick={handleAddRow}>Add Row</button>
+    <CardPages className="overflow-x-auto h-[calc(100vh-100px)] p-4">
+      <h1 className="text-gray-900 font-bold text-2xl">
+        Análise de concorrentes
+      </h1>
 
-      <table>
+      <table className="min-w-full border border-collapse">
         <thead>
           <tr>
-            <th></th>
+            <th className="font-medium text-sm text-gray-500 p-2 border">
+              Funcionalidade
+            </th>
             {columns.map((column, colIndex) => (
-              <th key={colIndex}>
-                <input
-                  type="text"
-                  value={column}
-                  onChange={(e) =>
-                    handleColumnTitleChange(colIndex, e.target.value)
-                  }
-                />
+              <th key={colIndex} className="p-2 border">
+                <div className="flex items-center justify-between gap-2">
+                  <Input
+                    type="text"
+                    value={column}
+                    onChange={(e) =>
+                      handleColumnTitleChange(colIndex, e.target.value)
+                    }
+                    className="font-medium text-sm text-gray-500 bg-transparent border-none px-0 py-0 min-w-[120px]"
+                  />
+                  <button
+                    onClick={() => handleDeleteColumn(colIndex)}
+                    className="text-red-500"
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
               </th>
             ))}
+            <th>
+              <button
+                onClick={handleAddColumn}
+                className="flex justify-center items-center text-green-500 w-8"
+              >
+                <PlusIcon />
+              </button>
+            </th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              <td>
-                <input
-                  type="text"
-                  value={row}
-                  onChange={(e) =>
-                    handleRowTitleChange(rowIndex, e.target.value)
-                  }
-                />
+              <td className="p-2 border">
+                <div className="flex items-center justify-between gap-2">
+                  <Input
+                    type="text"
+                    value={row}
+                    onChange={(e) =>
+                      handleRowTitleChange(rowIndex, e.target.value)
+                    }
+                    className="font-medium text-sm text-gray-500 bg-transparent border-none px-0 py-0 min-w-[120px]"
+                  />
+                  <button
+                    onClick={() => handleDeleteRow(rowIndex)}
+                    className="text-red-500"
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
               </td>
               {columns.map((column, colIndex) => (
-                <td key={colIndex}>
-                  <input
-                    type="checkbox"
+                <td key={colIndex} className="p-2 border text-center">
+                  <Checkbox
                     checked={tableData[row]?.[column] || false}
-                    onChange={() => handleCheckBoxChange(row, column)}
+                    onCheckedChange={() => handleCheckBoxChange(row, column)}
                   />
                 </td>
               ))}
             </tr>
           ))}
+          <button
+            onClick={handleAddRow}
+            className="px-4 py-2 text-green-500 flex justify-center items-center w-40 h-8"
+          >
+            <PlusIcon />
+          </button>
         </tbody>
       </table>
-    </div>
+    </CardPages>
   );
 };
 
-export default DynamicTable;
+export default CompetitorAnalysis;
