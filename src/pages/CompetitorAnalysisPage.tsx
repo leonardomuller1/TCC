@@ -81,8 +81,9 @@ const CompetitorAnalysis: React.FC = () => {
           linhas: updatedRows,
           dados: updatedData,
         },
-        { onConflict: ['empresa_id'] },
+        { onConflict: 'empresa_id' }  // Instead of an array, provide 'empresa_id' as a single string
       );
+      
 
       if (error) throw new Error(error.message);
     } catch (error) {
