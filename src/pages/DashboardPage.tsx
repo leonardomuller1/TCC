@@ -15,16 +15,16 @@ const DashboardPage: React.FC = () => {
             image="./Problema.png"
           />
           <CardPost
-            title="Segmento de clientes e Público-alvo"
-            link="/clientes"
-            alt="Segmento de clientes e Público-alvo"
-            image="./segmentodeclientes.png"
-          />
-          <CardPost
             title="Solução e proposta de valor"
             link="/solucao"
             alt="Solução e proposta de valor"
             image="./PropostadeValor.png"
+          />
+          <CardPost
+            title="Segmento de clientes e Público-alvo"
+            link="/clientes"
+            alt="Segmento de clientes e Público-alvo"
+            image="./segmentodeclientes.png"
           />
           <CardPost
             title="Análise de concorrentes"
