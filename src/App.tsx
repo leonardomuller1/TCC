@@ -15,8 +15,9 @@ import ProblemsPage from './pages/ProblemsPage';
 import ClientsPage from './pages/ClientsPage';
 import SolutionPage from './pages/SolutionPage';
 import FinancialsPage from './pages/FinancialsPage';
-import ConfigurationPage from './pages/ConfigurationPage';
 import CompetitorAnalysis from './pages/CompetitorAnalysisPage';
+import MetricsPage from './pages/MetricsPage';
+import ConfigurationPage from './pages/ConfigurationPage';
 
 function App() {
   return (
@@ -65,6 +66,9 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/financeiro" element={<FinancialsPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/andamento" element={<MetricsPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path="/configuracao" element={<ConfigurationPage />} />
