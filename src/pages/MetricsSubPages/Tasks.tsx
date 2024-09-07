@@ -1,16 +1,15 @@
 import {
-  useEffect,
   useState,
+  useEffect,
+  useCallback,
   ChangeEvent,
   FormEvent,
-  useCallback,
 } from 'react';
 
-// Componentes
+//components
 import DataTable from '@/components/TableComponent';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import KanbanBoard from './KanbanBoard';
+
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import {
@@ -21,10 +20,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Tab from '@/components/TabComponent';
 
-// Auxiliares
+//auxiliares
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
 
@@ -40,6 +50,18 @@ type Tarefa = {
   created_at: string;
   updated_at: string;
 };
+
+type Status = {
+  id: string;
+  nome: string;
+};
+
+const statusList: Status[] = [
+  { id: '1', nome: 'A fazer' },
+  { id: '2', nome: 'Fazendo' },
+  { id: '3', nome: 'Aprovação' },
+  { id: '4', nome: 'Feito' },
+];
 
 const Tasks = () => {
   const { user } = useAuthStore();
@@ -89,6 +111,11 @@ const Tasks = () => {
 
   const handleEditTarefa = (rowIndex: number) => {
     const tarefa = tarefas[rowIndex];
+    setSelectedTarefa(tarefa);
+    setOpenDialogEditTarefa(true);
+  };
+
+  const handleTaskClick = (tarefa: Tarefa) => {
     setSelectedTarefa(tarefa);
     setOpenDialogEditTarefa(true);
   };
@@ -215,22 +242,83 @@ const Tasks = () => {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
-  
 
+  const handleStatusChange = async (tarefaId: number, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ status: newStatus })
+        .eq('id', tarefaId);
+      if (error) throw error;
+      setTarefas((prevTarefas) =>
+        prevTarefas.map((tarefa) =>
+          tarefa.id === tarefaId ? { ...tarefa, status: newStatus } : tarefa,
+        ),
+      );
+      toast({
+        description: 'Status da tarefa atualizado com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      toast({
+        description: (error as Error).message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+  ('');
   return (
     <>
-      <DataTable
-        headers={['Nome', 'Descrição', 'Status', 'Prazo', 'Responsável']}
-        rows={tarefas.map((tarefa) => [
-          tarefa.nome,
-          tarefa.descricao,
-          tarefa.status,
-          formatDate(tarefa.prazo),
-          tarefa.responsavel,
-        ])}
-        onAddClick={handleAddTarefa}
-        onOptionsClick={handleEditTarefa}
+      <Tab
+        tabs={[
+          {
+            label: 'Lista de Tarefas',
+            content: (
+              <div>
+                <DataTable
+                  headers={[
+                    'Nome',
+                    'Descrição',
+                    'Status',
+                    'Prazo',
+                    'Responsável',
+                  ]}
+                  rows={tarefas.map((tarefa) => [
+                    tarefa.nome,
+                    tarefa.descricao,
+                    tarefa.status,
+                    formatDate(tarefa.prazo),
+                    tarefa.responsavel,
+                  ])}
+                  onAddClick={handleAddTarefa}
+                  onOptionsClick={handleEditTarefa}
+                />
+                <Button onClick={handleAddTarefa}>Adicionar Nova Tarefa</Button>
+              </div>
+            ),
+          },
+          {
+            label: 'Kanban',
+            content: (
+              <div>
+                <KanbanBoard
+                  tarefas={tarefas}
+                  statusList={statusList}
+                  onStatusChange={handleStatusChange}
+                  onTaskClick={handleTaskClick}
+                />
+              </div>
+            ),
+          },
+          {
+            label: 'Calendario',
+            content: <h1>123</h1>,
+          },
+        ]}
       />
+
       <Toaster />
 
       {/* Modal para adicionar nova tarefa */}
@@ -276,7 +364,9 @@ const Tasks = () => {
                 <div className="mb-4">
                   <Label htmlFor="status">Status</Label>
                   <Select
-                    onValueChange={(value) => handleSelectChange('status', value)}
+                    onValueChange={(value) =>
+                      handleSelectChange('status', value)
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione o Status" />
@@ -366,7 +456,9 @@ const Tasks = () => {
                 <div className="mb-4">
                   <Label htmlFor="status">Status</Label>
                   <Select
-                    onValueChange={(value) => handleSelectChange('status', value)}
+                    onValueChange={(value) =>
+                      handleSelectChange('status', value)
+                    }
                     value={selectedTarefa?.status || ''}
                   >
                     <SelectTrigger className="w-full">
@@ -410,12 +502,12 @@ const Tasks = () => {
             <DialogFooter>
               <Button type="submit">Salvar Tarefa</Button>
               <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDeleteTarefa}
-                >
-                  Excluir
-                </Button>
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteTarefa}
+              >
+                Excluir
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
