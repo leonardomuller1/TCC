@@ -9,6 +9,7 @@ import {
 //components
 import DataTable from '@/components/TableComponent';
 import KanbanBoard from './KanbanBoard';
+import Calendar from './Calendar'; // Importe o componente Calendar
 
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
@@ -242,13 +243,10 @@ const Tasks = () => {
     setSelectedTarefa(null);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Janeiro é 0
-    const year = date.getFullYear();
+  function formatDate(dateString: string): string {
+    const [year, month, day] = dateString.split('-');
     return `${day}/${month}/${year}`;
-  };
+  }
 
   const handleStatusChange = async (tarefaId: number, newStatus: string) => {
     try {
@@ -285,7 +283,13 @@ const Tasks = () => {
             content: (
               <div>
                 <DataTable
-                  headers={['Nome', 'Descrição', 'Status', 'Prazo', 'Responsável']}
+                  headers={[
+                    'Nome',
+                    'Descrição',
+                    'Status',
+                    'Prazo',
+                    'Responsável',
+                  ]}
                   rows={tarefas.map((tarefa) => [
                     tarefa.nome,
                     tarefa.descricao,
@@ -316,9 +320,11 @@ const Tasks = () => {
           {
             label: 'Calendario',
             content: (
-              <h1>123</h1>
-            )
-          }
+              <div>
+                <Calendar tarefas={tarefas} onTaskClick={handleTaskClick} />
+              </div>
+            ),
+          },
         ]}
       />
 
