@@ -400,7 +400,7 @@ function ConfigurationPage() {
     <CardPages>
       <h1 className="text-gray-900 font-bold text-2xl">Configurações</h1>
       <form
-        className="gap-4 flex flex-col w-1/3"
+        className="gap-4 flex flex-col max-w-96"
         onSubmit={handleUpdateProfile}
       >
         <div className="gap-2 flex flex-col">
