@@ -105,7 +105,7 @@ function HeaderTopDashboard() {
               <p className="text-gray-400 font-normal text-sm hover:text-gray-900 hover:font-semibold">
                 <a href="/">Dashboard</a>
               </p>
-              <p className="text-gray-900 font-normal text-sm hover:font-semibold">
+              <p className="text-gray-900 font-normal text-sm hover:font-semibold hidden sm:block">
                 {dynamicName}
               </p>
             </>
