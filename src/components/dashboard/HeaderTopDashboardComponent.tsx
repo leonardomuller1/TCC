@@ -113,7 +113,7 @@ function HeaderTopDashboard() {
         </div>
         {user && (
           <div className="flex items-center gap-2">
-            <p className="text-gray-900 font-normal text-sm">
+            <p className="text-gray-900 font-normal text-sm hidden md:block">
               Bem-vindo, {user.name}
             </p>
             <DropdownMenu>
