@@ -97,7 +97,7 @@ function HeaderTopDashboard() {
   };
 
   return (
-    <div className="w-full bg-white border-b border-gray-200 py-4 px-32">
+    <div className="w-full bg-white border-b border-gray-200 py-4 px-4 sm:px-8 md:px-16 lg:px-32">
       <div className="flex flex-row gap-4 justify-between items-center">
         <div className="flex flex-row gap-4">
           {dynamicName && (
