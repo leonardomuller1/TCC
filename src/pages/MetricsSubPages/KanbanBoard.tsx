@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+import { PlusCircledIcon} from '@radix-ui/react-icons'; // Importando o ícone de Plus
 
 // Tipos
 type Tarefa = {
-    id: number;
-    empresa_id: string; // Adicionar
-    nome: string;
-    descricao: string;
-    prazo: string;
-    status: string;
-    responsavel: string;
-    created_at: string; // Adicionar
-    updated_at: string; // Adicionar
-  };
+  id: number;
+  empresa_id: string;
+  nome: string;
+  descricao: string;
+  prazo: string;
+  status: string;
+  responsavel: string;
+  created_at: string;
+  updated_at: string;
+};
 
 type Status = {
   id: string;
@@ -22,7 +23,8 @@ interface KanbanBoardProps {
   tarefas: Tarefa[];
   statusList: Status[];
   onStatusChange: (tarefaId: number, newStatus: string) => void;
-  onTaskClick: (tarefa: Tarefa) => void; // Nova prop para lidar com clique na tarefa
+  onTaskClick: (tarefa: Tarefa) => void;
+  onAddTask: (status: string) => void; // Nova prop para adicionar tarefa
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -30,6 +32,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   statusList,
   onStatusChange,
   onTaskClick,
+  onAddTask, // Usando a nova prop
 }) => {
   const [draggedTask, setDraggedTask] = useState<Tarefa | null>(null);
 
@@ -63,9 +66,20 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
           key={status.id}
           onDrop={() => handleDrop(status.nome)}
           onDragOver={handleDragOver}
-          className="w-1/4 bg-gray-100 p-4 rounded-lg shadow-md"
+          className="w-1/4 bg-gray-50 p-4 rounded-2xl border border-gray-200"
         >
-          <h3 className="text-lg font-bold mb-4">{status.nome}</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-base text-gray-700 font-mediunbg-red-300 self-center">
+              {status.nome}
+            </h3>
+            <button
+              onClick={() => onAddTask(status.nome)} // Chama a função para adicionar tarefa com o status da coluna
+              className="focus:outline-none"
+            >
+              <PlusCircledIcon className="w-4 h-4 text-gray-500 hover:text-gray-700"/>
+            </button>
+          </div>
+
           {tarefas
             .filter((tarefa) => tarefa.status === status.nome)
             .map((tarefa) => (
@@ -74,11 +88,17 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 draggable
                 onDragStart={() => handleDragStart(tarefa)}
                 onClick={() => onTaskClick(tarefa)} // Chama a função quando a tarefa é clicada
-                className="bg-white p-2 mb-2 rounded-lg shadow-sm cursor-pointer"
+                className="border border-gray-200 p-2 mb-2 rounded-mg cursor-pointer"
               >
-                <h4 className="font-medium">{tarefa.nome}</h4>
-                <p className="text-sm text-gray-600">{formatDate(tarefa.prazo)}</p>
-                <p className="text-sm text-gray-400">Responsável: {tarefa.responsavel}</p>
+                <h4 className="font-bold text-sm text-gray-700">
+                  {tarefa.nome}
+                </h4>
+                <div className="flex gap-2">
+                  <p className="text-xs	text-gray-700">
+                    {formatDate(tarefa.prazo)}
+                  </p>
+                  <p className="text-xs	text-gray-700">{tarefa.responsavel}</p>
+                </div>
               </div>
             ))}
         </div>

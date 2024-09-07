@@ -104,8 +104,15 @@ const Tasks = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleAddTarefa = () => {
+  const handleAddTarefa = (status: string) => {
     clearForm();
+    setNewTarefa({ status }); // Define o status da nova tarefa
+    setOpenDialogNewTarefa(true);
+  };
+
+  const handleAddTarefaList = () => {
+    clearForm();
+    setNewTarefa({ status: 'A fazer' }); // Define um status padrão
     setOpenDialogNewTarefa(true);
   };
 
@@ -268,7 +275,7 @@ const Tasks = () => {
       });
     }
   };
-  ('');
+
   return (
     <>
       <Tab
@@ -278,13 +285,7 @@ const Tasks = () => {
             content: (
               <div>
                 <DataTable
-                  headers={[
-                    'Nome',
-                    'Descrição',
-                    'Status',
-                    'Prazo',
-                    'Responsável',
-                  ]}
+                  headers={['Nome', 'Descrição', 'Status', 'Prazo', 'Responsável']}
                   rows={tarefas.map((tarefa) => [
                     tarefa.nome,
                     tarefa.descricao,
@@ -292,10 +293,9 @@ const Tasks = () => {
                     formatDate(tarefa.prazo),
                     tarefa.responsavel,
                   ])}
-                  onAddClick={handleAddTarefa}
+                  onAddClick={handleAddTarefaList}
                   onOptionsClick={handleEditTarefa}
                 />
-                <Button onClick={handleAddTarefa}>Adicionar Nova Tarefa</Button>
               </div>
             ),
           },
@@ -308,14 +308,17 @@ const Tasks = () => {
                   statusList={statusList}
                   onStatusChange={handleStatusChange}
                   onTaskClick={handleTaskClick}
+                  onAddTask={handleAddTarefa} // Passando a função para adicionar tarefa
                 />
               </div>
             ),
           },
           {
             label: 'Calendario',
-            content: <h1>123</h1>,
-          },
+            content: (
+              <h1>123</h1>
+            )
+          }
         ]}
       />
 
@@ -367,6 +370,7 @@ const Tasks = () => {
                     onValueChange={(value) =>
                       handleSelectChange('status', value)
                     }
+                    value={newTarefa.status || ''}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione o Status" />
