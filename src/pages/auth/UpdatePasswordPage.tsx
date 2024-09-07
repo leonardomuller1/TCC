@@ -67,9 +67,9 @@ function UpdatePasswordPage() {
   return (
     <div className="h-screen bg-gray-50 flex flex-row">
       <CardAuthComponent />
-      <div className="basis-1/2 flex justify-center items-center">
-        <div className="w-1/2 flex flex-col gap-4">
-          <div className="p-6 flex flex-col justify-center items-center gap-1">
+      <div className="flex justify-center items-center w-screen p-4">
+        <div className="flex flex-col gap-4 ">
+          <div className="gap-1">
             <h1 className="text-gray-900 text-2xl font-semibold">
               Atualizar Senha
             </h1>
@@ -107,6 +107,10 @@ function UpdatePasswordPage() {
                 'Atualizar Senha'
               )}
             </Button>
+            <p className="text-gray-500 text-xs text-center">
+              Ao clicar em continuar, você concorda com nossos Termos de Serviço
+              e Política de Privacidade.
+            </p>
           </form>
         </div>
       </div>

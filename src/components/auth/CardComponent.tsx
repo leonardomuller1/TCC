@@ -1,6 +1,6 @@
 function CardAuthComponent() {
   return (
-    <div className="bg-gray-900 p-12 basis-1/2 flex flex-col justify-between">
+    <div className="bg-gray-900 p-12 basis-1/2 flex-col justify-between md:flex hidden">
       <img alt="logo" src="./logo.png" className="w-32" />
       <div className="flex flex-col gap-4">
         <h3 className="text-gray-50 text-lg font-semibold">
