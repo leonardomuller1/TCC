@@ -1,4 +1,3 @@
-//componentes
 import CardPost from '@/components/CardPostComponent';
 import HeaderTopDashboard from '@/components/dashboard/HeaderTopDashboardComponent';
 
@@ -6,8 +5,8 @@ const DashboardPage: React.FC = () => {
   return (
     <>
       <HeaderTopDashboard />
-      <div className="bg-white px-36 py-4 flex items-center justify-center">
-        <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+      <div className="bg-white px-4 py-4 flex items-center justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
           <CardPost
             title="Problema"
             link="/problema"
