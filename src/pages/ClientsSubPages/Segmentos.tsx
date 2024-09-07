@@ -256,7 +256,7 @@ const Segmentos = () => {
         open={openDialogNewSegmento}
         onOpenChange={setOpenDialogNewSegmento}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Segmento</DialogTitle>
             <DialogDescription>
@@ -264,7 +264,7 @@ const Segmentos = () => {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveNewSegmento}>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <div className="mb-4">
                   <Label htmlFor="nome">Nome</Label>
@@ -296,6 +296,8 @@ const Segmentos = () => {
                     onChange={handleChange}
                   />
                 </div>
+              </div>
+              <div>
                 <div className="mb-4">
                   <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
                   <Select
@@ -396,7 +398,7 @@ const Segmentos = () => {
         open={openDialogEditSegmento}
         onOpenChange={setOpenDialogEditSegmento}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Editar Segmento</DialogTitle>
             <DialogDescription>
@@ -405,7 +407,7 @@ const Segmentos = () => {
           </DialogHeader>
           {selectedSegmento && (
             <form onSubmit={handleSaveEditSegmento}>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <div className="mb-4">
                     <Label htmlFor="nome">Nome</Label>
@@ -437,6 +439,8 @@ const Segmentos = () => {
                       onChange={handleChange}
                     />
                   </div>
+                </div>
+                <div>
                   <div className="mb-4">
                     <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
                     <Select
@@ -490,7 +494,6 @@ const Segmentos = () => {
                     />
                   </div>
                 </div>
-
                 <div>
                   <div className="mb-4">
                     <Label htmlFor="relation">Adicionar Relação</Label>
@@ -527,7 +530,7 @@ const Segmentos = () => {
                 </div>
               </div>
 
-              <DialogFooter>
+              <DialogFooter className="gap-2">
                 <Button type="submit">Editar</Button>
                 <Button
                   type="button"

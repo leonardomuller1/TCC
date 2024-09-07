@@ -277,7 +277,7 @@ const PublicoAlvo = () => {
         open={openDialogNewPublico}
         onOpenChange={setOpenDialogNewPublico}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Público-Alvo</DialogTitle>
             <DialogDescription>
@@ -286,7 +286,7 @@ const PublicoAlvo = () => {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveNewPublico}>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <Label htmlFor="segmento_cliente">Segmento Cliente</Label>
                 <Select
@@ -393,7 +393,7 @@ const PublicoAlvo = () => {
                   onChange={handleChange}
                 />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-3">
                 <Label htmlFor="tarefas_e_responsabilidades">
                   Tarefas e Responsabilidades
                 </Label>
@@ -417,7 +417,7 @@ const PublicoAlvo = () => {
         open={openDialogEditPublico}
         onOpenChange={setOpenDialogEditPublico}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Editar Público-Alvo</DialogTitle>
             <DialogDescription>
@@ -426,7 +426,7 @@ const PublicoAlvo = () => {
           </DialogHeader>
           {selectedPublico && (
             <form onSubmit={handleSaveEditPublico}>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <Label htmlFor="segmento_cliente">Segmento Cliente</Label>
                   <Select
@@ -533,7 +533,7 @@ const PublicoAlvo = () => {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-3">
                   <Label htmlFor="tarefas_e_responsabilidades">
                     Tarefas e Responsabilidades
                   </Label>
