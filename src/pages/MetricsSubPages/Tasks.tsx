@@ -276,57 +276,74 @@ const Tasks = () => {
 
   return (
     <>
-      <Tab
-        tabs={[
-          {
-            label: 'Lista de Tarefas',
-            content: (
-              <div>
-                <DataTable
-                  headers={[
-                    'Nome',
-                    'Descrição',
-                    'Status',
-                    'Prazo',
-                    'Responsável',
-                  ]}
-                  rows={tarefas.map((tarefa) => [
-                    tarefa.nome,
-                    tarefa.descricao,
-                    tarefa.status,
-                    formatDate(tarefa.prazo),
-                    tarefa.responsavel,
-                  ])}
-                  onAddClick={handleAddTarefaList}
-                  onOptionsClick={handleEditTarefa}
-                />
-              </div>
-            ),
-          },
-          {
-            label: 'Kanban',
-            content: (
-              <div>
-                <KanbanBoard
-                  tarefas={tarefas}
-                  statusList={statusList}
-                  onStatusChange={handleStatusChange}
-                  onTaskClick={handleTaskClick}
-                  onAddTask={handleAddTarefa} // Passando a função para adicionar tarefa
-                />
-              </div>
-            ),
-          },
-          {
-            label: 'Calendario',
-            content: (
-              <div>
-                <Calendar tarefas={tarefas} onTaskClick={handleTaskClick} />
-              </div>
-            ),
-          },
-        ]}
+      {/* so aparece no celular e tablet */}
+      <DataTable
+        className='md:hidden'
+        headers={['Nome', 'Descrição', 'Status', 'Prazo', 'Responsável']}
+        rows={tarefas.map((tarefa) => [
+          tarefa.nome,
+          tarefa.descricao,
+          tarefa.status,
+          formatDate(tarefa.prazo),
+          tarefa.responsavel,
+        ])}
+        onAddClick={handleAddTarefaList}
+        onOptionsClick={handleEditTarefa}
       />
+      {/* so aparece no computador */}
+        <Tab
+          className='hidden md:block'
+          tabs={[
+            {
+              label: 'Lista de Tarefas',
+              content: (
+                <div>
+                  <DataTable
+                    headers={[
+                      'Nome',
+                      'Descrição',
+                      'Status',
+                      'Prazo',
+                      'Responsável',
+                    ]}
+                    rows={tarefas.map((tarefa) => [
+                      tarefa.nome,
+                      tarefa.descricao,
+                      tarefa.status,
+                      formatDate(tarefa.prazo),
+                      tarefa.responsavel,
+                    ])}
+                    onAddClick={handleAddTarefaList}
+                    onOptionsClick={handleEditTarefa}
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Kanban',
+              content: (
+                <div>
+                  <KanbanBoard
+                    tarefas={tarefas}
+                    statusList={statusList}
+                    onStatusChange={handleStatusChange}
+                    onTaskClick={handleTaskClick}
+                    onAddTask={handleAddTarefa} // Passando a função para adicionar tarefa
+                  />
+                </div>
+              ),
+            },
+            {
+              label: 'Calendario',
+              content: (
+                <div>
+                  <Calendar tarefas={tarefas} onTaskClick={handleTaskClick} />
+                </div>
+              ),
+            },
+          ]}
+        />
+
 
       <Toaster />
 
