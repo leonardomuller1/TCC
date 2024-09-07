@@ -12,6 +12,7 @@ interface MyTableComponentProps {
   emptyStateImage?: string;
   hidePlusIcon?: boolean;
   externalAddButton?: React.ReactNode;
+  className?:string;
 }
 
 const DataTable: React.FC<MyTableComponentProps> = ({
@@ -23,10 +24,11 @@ const DataTable: React.FC<MyTableComponentProps> = ({
   emptyStateDescription = "Vamos começar a planejar agora mesmo",
   emptyStateImage = "./emptystate.png",
   hidePlusIcon = false,
-  externalAddButton
+  externalAddButton,
+  className
 }) => {
   return (
-    <div>
+    <div className={className}>
       {externalAddButton && (
         <div className="mb-4 flex justify-end">
           {externalAddButton}

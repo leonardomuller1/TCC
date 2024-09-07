@@ -3,13 +3,14 @@ import { Button } from './ui/button';
 
 interface TabProps {
   tabs: { label: string; content: ReactNode }[];
+  className?: string; // Adiciona a prop className
 }
 
-const Tab: React.FC<TabProps> = ({ tabs }) => {
+const Tab: React.FC<TabProps> = ({ tabs, className }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div>
+    <div className={className}>
       <div className="inline-flex rounded-md border border-gray-200 p-1 mb-2">
         {tabs.map((tab, index) => (
           <Button
