@@ -16,9 +16,15 @@ interface MyTableComponentProps {
   emptyStateDescription?: string;
   emptyStateImage?: string;
   hidePlusIcon?: boolean;
-  externalAddButton?: React.ReactNode;
   className?: string;
   rowsPerPage?: number; // propriedade para definir quantos itens por página
+  filters?: Filter[]; // propriedade para definir filtros
+}
+
+interface Filter {
+  type: 'input' | 'dropdown';
+  label: string;
+  options?: string[]; // apenas para dropdown
 }
 
 const DataTable: React.FC<MyTableComponentProps> = ({
@@ -30,12 +36,25 @@ const DataTable: React.FC<MyTableComponentProps> = ({
   emptyStateDescription = 'Vamos começar a planejar agora mesmo',
   emptyStateImage = './emptystate.png',
   hidePlusIcon = false,
-  externalAddButton,
   className,
   rowsPerPage = 10, // padrão para 10 itens por página
+  filters = [],
 }) => {
   const [currentPage, setCurrentPage] = useState(1); // estado para controlar a página atual
-  const totalPages = Math.ceil(rows.length / rowsPerPage); // calcular o total de páginas
+  const [filterValues, setFilterValues] = useState<{ [key: string]: string }>({});
+
+  // Função para filtrar as linhas
+  const filteredRows = rows.filter((row) => {
+    return filters.every((filter) => {
+      const value = filterValues[filter.label];
+      if (!value) return true;
+      const index = headers.indexOf(filter.label);
+      if (index === -1) return true;
+      return row[index]?.toString().toLowerCase().includes(value.toLowerCase());
+    });
+  });
+
+  const totalPages = Math.ceil(filteredRows.length / rowsPerPage); // calcular o total de páginas
 
   // Funções de navegação
   const goToPreviousPage = () => {
@@ -49,16 +68,49 @@ const DataTable: React.FC<MyTableComponentProps> = ({
   // Calcular o índice de início e fim para as linhas exibidas na página atual
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const currentRows = rows.slice(startIndex, endIndex); // pegar apenas as linhas da página atual
+  const currentRows = filteredRows.slice(startIndex, endIndex); // pegar apenas as linhas da página atual
+
+  // Função para atualizar os valores dos filtros
+  const handleFilterChange = (label: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [label]: value }));
+    setCurrentPage(1); // Reiniciar a página atual quando os filtros mudam
+  };
 
   return (
     <div className={className}>
-      {externalAddButton && (
-        <div className="mb-4 flex justify-end">{externalAddButton}</div>
+
+      {filters.length > 0 && (
+        <div>
+          {filters.map((filter, index) => (
+            <div key={index} className="flex flex-col">
+              <label>{filter.label}</label>
+              {filter.type === 'input' ? (
+                <input
+                  type="text"
+                  className="border border-gray-300 rounded px-2 py-1"
+                  onChange={(e) => handleFilterChange(filter.label, e.target.value)}
+                />
+              ) : (
+                <select
+                  className="border border-gray-300 rounded px-2 py-1"
+                  onChange={(e) => handleFilterChange(filter.label, e.target.value)}
+                >
+                  <option value="">Selecione</option>
+                  {filter.options?.map((option, idx) => (
+                    <option key={idx} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
+
       <div className="overflow-hidden rounded-lg border border-gray-200">
-        {rows.length === 0 ? (
+        {filteredRows.length === 0 ? (
           <div className="text-center py-10">
             {emptyStateImage && (
               <div className="mb-4">
@@ -72,14 +124,12 @@ const DataTable: React.FC<MyTableComponentProps> = ({
             <p className="text-gray-500">{emptyStateMessage}</p>
             <p className="text-gray-400 mt-2">{emptyStateDescription}</p>
             <div className="mt-4">
-              {externalAddButton ? (
-                externalAddButton
-              ) : (
+              
                 <Button onClick={onAddClick}>
                   <PlusCircledIcon className="w-5 h-5 inline mr-1" />
                   Adicionar nova informação
                 </Button>
-              )}
+
             </div>
           </div>
         ) : (
