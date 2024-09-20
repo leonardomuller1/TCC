@@ -119,7 +119,7 @@ function LoginPage() {
     e.preventDefault();
     setLoadingResetPassoword(true);
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: 'http://localhost:5173/atualizar-senha',
+      redirectTo: `${import.meta.env.VITE_DOMAIN_URL}/atualizar-senha`,
     });
 
     if (error) {
