@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 // Auxiliares
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 // Tipos
 type PublicoAlvo = {
@@ -68,6 +69,7 @@ const PublicoAlvo = () => {
   const [segmentosCliente, setSegmentosCliente] = useState<
     { id: number; nome: string }[]
   >([]);
+  const [filterName, setFilterName] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -250,17 +252,36 @@ const PublicoAlvo = () => {
       setSelectedPublico((prev) => prev && { ...prev, [name]: value });
     }
   };
-  
+
   const clearForm = () => {
     setNewPublico({});
     setSelectedPublico(null);
   };
-  
+
+  const filteredPublicosAlvo = publicosAlvo.filter((publico) => {
+    const segmentoNome = segmentoMap[parseInt(publico.segmento_cliente, 10)] || '';
+    const nameMatch = segmentoNome.toLowerCase().includes(filterName.toLowerCase());
+    return nameMatch;
+  });
+
   return (
     <>
+      <div className="flex gap-4">
+        <Input
+          type="text"
+          placeholder="Filtrar por segmento de cliente"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          className="h-10"
+        />
+        <Button onClick={handleAddPublico} className="gap-2">
+          <PlusCircledIcon className="text-primary-foreground" />
+          Adicionar canal
+        </Button>
+      </div>
       <DataTable
         headers={['Segmento Cliente', 'Faixa Etária', 'Localização', 'Cargo']}
-        rows={publicosAlvo.map((publico) => [
+        rows={filteredPublicosAlvo.map((publico) => [
           segmentoMap[parseInt(publico.segmento_cliente, 10)] || 'Desconhecido', // Usando o nome do segmento
           publico.faixa_etaria,
           publico.localizacao,
@@ -268,6 +289,7 @@ const PublicoAlvo = () => {
         ])}
         onAddClick={handleAddPublico}
         onOptionsClick={handleEditPublico}
+        hidePlusIcon={true}
       />
 
       <Toaster />

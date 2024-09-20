@@ -65,6 +65,9 @@ const Segmentos = () => {
     useState<SegmentoClientes | null>(null);
   const [relations, setRelations] = useState<string[]>([]);
   const [newRelation, setNewRelation] = useState<string>('');
+  const [filterName, setFilterName] = useState<string>(''); // Estado para o filtro de nome
+  const [filterVaiAtender, setFilterVaiAtender] = useState<string>('none'); // Estado para o filtro de "Vai Atender"
+  const [filterTipoCliente, setFilterTipoCliente] = useState<string>('none'); // Estado para o filtro de "Tipo de Cliente"
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -235,11 +238,69 @@ const Segmentos = () => {
     setRelations((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Filtrar os segmentos com base no nome
+  const filteredSegmentos = segmentosClientes.filter((segmento) => {
+    const nameMatch = (segmento.nome || '')
+      .toLowerCase()
+      .includes(filterName.toLowerCase());
+    const tipoMatch =
+      filterTipoCliente === 'none' ||
+      (segmento.tipo_cliente || '').toLowerCase() ===
+        filterTipoCliente.toLowerCase();
+        const atenderMatch = filterVaiAtender === 'none' || segmento.vai_atender.toString() === filterVaiAtender;
+
+    return nameMatch && tipoMatch && atenderMatch;
+  });
+
   return (
     <>
+      <div className="flex gap-4">
+        <Input
+          type="text"
+          placeholder="Filtrar por nome"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          className="h-10"
+        />
+        <Select
+          onValueChange={(value) => setFilterTipoCliente(value)}
+          value={filterTipoCliente}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filtrar por tipo de cliente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="none">Filtrar por tipo de cliente</SelectItem>
+              <SelectItem value="B2B">B2B (Empresa para Empresa)</SelectItem>
+              <SelectItem value="B2C">B2C (Empresa para Consumidor)</SelectItem>
+              <SelectItem value="B2G">B2G (Empresa para Governo)</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Select
+          onValueChange={(value) => setFilterVaiAtender(value)}
+          value={filterVaiAtender}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filtrar por tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="none">Filtrar por vai atender</SelectItem>
+              <SelectItem value="true">Sim</SelectItem>
+              <SelectItem value="false">Não</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button onClick={handleAddSegmento} className="gap-2">
+          <PlusCircledIcon className="text-primary-foreground" />
+          Adicionar segmento
+        </Button>
+      </div>
       <DataTable
         headers={['Nome', 'Área', 'Tipo de Cliente', 'Vai Atender', 'Relações']}
-        rows={segmentosClientes.map((segmento) => [
+        rows={filteredSegmentos.map((segmento) => [
           segmento.nome,
           segmento.area,
           segmento.tipo_cliente,
@@ -248,6 +309,7 @@ const Segmentos = () => {
         ])}
         onAddClick={handleAddSegmento}
         onOptionsClick={handleEditSegmento}
+        hidePlusIcon={true}
       />
       <Toaster />
 

@@ -26,6 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 // Auxiliares
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 // Tipos
 type Canal = {
@@ -48,6 +49,7 @@ const Canais = () => {
   const [openDialogEditCanal, setOpenDialogEditCanal] = useState(false);
   const [newCanal, setNewCanal] = useState<Partial<Canal>>({});
   const [selectedCanal, setSelectedCanal] = useState<Canal | null>(null);
+  const [filterName, setFilterName] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -137,7 +139,7 @@ const Canais = () => {
         canais.map((canal) =>
           canal.id === selectedCanal.id ? selectedCanal : canal,
         ),
-      );      
+      );
       clearForm();
       setOpenDialogEditCanal(false);
       toast({
@@ -162,9 +164,7 @@ const Canais = () => {
         .delete()
         .eq('id', selectedCanal.id);
       if (error) throw error;
-      setCanais(
-        canais.filter((canal) => canal.id !== selectedCanal.id),
-      );
+      setCanais(canais.filter((canal) => canal.id !== selectedCanal.id));
       clearForm();
       setOpenDialogEditCanal(false);
       toast({
@@ -199,25 +199,43 @@ const Canais = () => {
     setSelectedCanal(null);
   };
 
+  const filteredCanais = canais.filter((canais) => {
+    const nameMatch = (canais.nome || '')
+      .toLowerCase()
+      .includes(filterName.toLowerCase());
+    return nameMatch;
+  });
+
   return (
     <>
+      <div className="flex gap-4">
+        <Input
+          type="text"
+          placeholder="Filtrar por nome"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          className="h-10"
+        />
+        <Button onClick={handleAddCanal} className="gap-2">
+          <PlusCircledIcon className="text-primary-foreground" />
+          Adicionar canal
+        </Button>
+      </div>
       <DataTable
         headers={['Nome', 'Tipo de Canal', 'Objetivo']}
-        rows={canais.map((canal) => [
+        rows={filteredCanais.map((canal) => [
           canal.nome,
           canal.tipo_de_canal,
           canal.objetivo,
         ])}
         onAddClick={handleAddCanal}
         onOptionsClick={handleEditCanal}
+        hidePlusIcon={true}
       />
       <Toaster />
 
       {/* Modal para adicionar novo canal */}
-      <Dialog
-        open={openDialogNewCanal}
-        onOpenChange={setOpenDialogNewCanal}
-      >
+      <Dialog open={openDialogNewCanal} onOpenChange={setOpenDialogNewCanal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Adicionar Novo Canal</DialogTitle>
@@ -273,10 +291,7 @@ const Canais = () => {
       </Dialog>
 
       {/* Modal para editar canal existente */}
-      <Dialog
-        open={openDialogEditCanal}
-        onOpenChange={setOpenDialogEditCanal}
-      >
+      <Dialog open={openDialogEditCanal} onOpenChange={setOpenDialogEditCanal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Canal</DialogTitle>
