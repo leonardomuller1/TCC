@@ -53,6 +53,7 @@ const Metrics = () => {
     mes: '',
     valor: 0,
   });
+  const [filterName, setFilterName] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -100,7 +101,7 @@ const Metrics = () => {
 
   const handleSaveNewMetrica = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     // Verificar se o campo "nome" está vazio
     if (!newMetrica.nome || newMetrica.nome.trim() === '') {
       toast({
@@ -110,7 +111,7 @@ const Metrics = () => {
       });
       return;
     }
-  
+
     try {
       const { data, error } = await supabase.from('metricas').insert([
         {
@@ -121,9 +122,9 @@ const Metrics = () => {
           valores,
         },
       ]);
-  
+
       if (error) throw error;
-  
+
       if (Array.isArray(data)) {
         setMetricas([...metricas, ...data]);
       } else if (data) {
@@ -145,8 +146,7 @@ const Metrics = () => {
       });
     }
   };
-  
-  
+
   const handleSaveEditMetrica = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedMetrica) return;
@@ -231,11 +231,31 @@ const Metrics = () => {
     setValores((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const filteredMetrics = metricas.filter((metricas) => {
+    const nameMatch = (metricas.nome || '')
+      .toLowerCase()
+      .includes(filterName.toLowerCase());
+    return nameMatch;
+  });
+
   return (
     <>
+      <div className="flex gap-4">
+        <Input
+          type="text"
+          placeholder="Filtrar por nome"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          className="h-10"
+        />
+        <Button onClick={handleAddMetrica} className="gap-2">
+          <PlusCircledIcon className="text-primary-foreground" />
+          Adicionar métrica
+        </Button>
+      </div>
       <DataTable
         headers={['Nome', 'Área', 'Valores']}
-        rows={metricas.map((metrica) => [
+        rows={filteredMetrics.map((metrica) => [
           metrica.nome,
           metrica.area,
           metrica.valores
@@ -246,6 +266,7 @@ const Metrics = () => {
         ])}
         onAddClick={handleAddMetrica}
         onOptionsClick={handleEditMetrica}
+        hidePlusIcon={true}
       />
       <Toaster />
 
@@ -296,18 +317,16 @@ const Metrics = () => {
                 </div>
               </div>
               <div>
-
-
                 <div className="mb-4">
-                <div className="mb-2 flex items-center">
-                  <Label htmlFor="valorList">Valores</Label>
-                  <button
-                    type="button"
-                    onClick={addValor}
-                    className="ml-2 flex items-center justify-center"
-                  >
-                    <PlusCircledIcon className="w-6 h-6 text-gray-500 hover:text-gray-700" />
-                  </button>
+                  <div className="mb-2 flex items-center">
+                    <Label htmlFor="valorList">Valores</Label>
+                    <button
+                      type="button"
+                      onClick={addValor}
+                      className="ml-2 flex items-center justify-center"
+                    >
+                      <PlusCircledIcon className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                    </button>
                   </div>
                   <ul>
                     {valores.map((valor, index) => (

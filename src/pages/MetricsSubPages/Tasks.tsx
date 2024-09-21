@@ -38,6 +38,7 @@ import Tab from '@/components/TabComponent';
 //auxiliares
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 // Tipos
 type Tarefa = {
@@ -73,6 +74,9 @@ const Tasks = () => {
   const [openDialogEditTarefa, setOpenDialogEditTarefa] = useState(false);
   const [newTarefa, setNewTarefa] = useState<Partial<Tarefa>>({});
   const [selectedTarefa, setSelectedTarefa] = useState<Tarefa | null>(null);
+  const [filterName, setFilterName] = useState<string>('');
+  const [filterResponsavel, setFilterResponsavel] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('none');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -105,11 +109,23 @@ const Tasks = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleAddTarefa = (status: string) => {
+  const handleAddTarefa = (
+    statusOrEvent: string | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    let status: string;
+
+    if (typeof statusOrEvent === 'string') {
+      status = statusOrEvent;
+    } else {
+      statusOrEvent.preventDefault();
+      status = 'A fazer'; // Default status when called from button click
+    }
+
     clearForm();
-    setNewTarefa({ status }); // Define o status da nova tarefa
+    setNewTarefa({ status });
     setOpenDialogNewTarefa(true);
   };
+
 
   const handleAddTarefaList = () => {
     clearForm();
@@ -273,14 +289,64 @@ const Tasks = () => {
       });
     }
   };
+  // Filtrar os segmentos com base no nome
+  const filteredTasks = tarefas.filter((tarefa) => {
+    const nameMatch = (tarefa.nome || '')
+      .toLowerCase()
+      .includes(filterName.toLowerCase());
+    const statusMatch =
+      filterStatus === 'none' ||
+      (tarefa.status || '').toLowerCase() === filterStatus.toLowerCase();
+    const responsvelMatch = (tarefa.responsavel || '')
+      .toLowerCase()
+      .includes(filterResponsavel.toLowerCase());
 
+    return nameMatch && statusMatch && responsvelMatch;
+  });
   return (
     <>
+      <div className="flex gap-4">
+        <Input
+          type="text"
+          placeholder="Filtrar por nome da tarefa"
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
+          className="h-10"
+        />
+        <Input
+          type="text"
+          placeholder="Filtrar por responsável"
+          value={filterResponsavel}
+          onChange={(e) => setFilterResponsavel(e.target.value)}
+          className="h-10"
+        />
+        <Select
+          onValueChange={(value) => setFilterStatus(value)}
+          value={filterStatus}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Status da tarefa" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="none">Status da tarefa</SelectItem>
+              <SelectItem value="A fazer">A fazer</SelectItem>
+              <SelectItem value="Fazendo">Fazendo</SelectItem>
+              <SelectItem value="Aprovação">Aprovação</SelectItem>
+              <SelectItem value="Feito">Feito</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button onClick={handleAddTarefa} className="gap-2">
+          <PlusCircledIcon className="text-primary-foreground" />
+          Adicionar tarefa
+        </Button>
+      </div>
       {/* so aparece no celular e tablet */}
       <DataTable
-        className='md:hidden'
+        className="md:hidden"
         headers={['Nome', 'Descrição', 'Status', 'Prazo', 'Responsável']}
-        rows={tarefas.map((tarefa) => [
+        rows={filteredTasks.map((tarefa) => [
           tarefa.nome,
           tarefa.descricao,
           tarefa.status,
@@ -291,59 +357,60 @@ const Tasks = () => {
         onOptionsClick={handleEditTarefa}
       />
       {/* so aparece no computador */}
-        <Tab
-          className='hidden md:block'
-          tabs={[
-            {
-              label: 'Lista de Tarefas',
-              content: (
-                <div>
-                  <DataTable
-                    headers={[
-                      'Nome',
-                      'Descrição',
-                      'Status',
-                      'Prazo',
-                      'Responsável',
-                    ]}
-                    rows={tarefas.map((tarefa) => [
-                      tarefa.nome,
-                      tarefa.descricao,
-                      tarefa.status,
-                      formatDate(tarefa.prazo),
-                      tarefa.responsavel,
-                    ])}
-                    onAddClick={handleAddTarefaList}
-                    onOptionsClick={handleEditTarefa}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Kanban',
-              content: (
-                <div>
-                  <KanbanBoard
-                    tarefas={tarefas}
-                    statusList={statusList}
-                    onStatusChange={handleStatusChange}
-                    onTaskClick={handleTaskClick}
-                    onAddTask={handleAddTarefa} // Passando a função para adicionar tarefa
-                  />
-                </div>
-              ),
-            },
-            {
-              label: 'Calendario',
-              content: (
-                <div>
-                  <Calendar tarefas={tarefas} onTaskClick={handleTaskClick} />
-                </div>
-              ),
-            },
-          ]}
-        />
+      <Tab
+        className="hidden md:block"
+        tabs={[
+          {
+            label: 'Lista de Tarefas',
+            content: (
+              <div>
+                <DataTable
+                  headers={[
+                    'Nome',
+                    'Descrição',
+                    'Status',
+                    'Prazo',
+                    'Responsável',
+                  ]}
+                  rows={filteredTasks.map((tarefa) => [
+                    tarefa.nome,
+                    tarefa.descricao,
+                    tarefa.status,
+                    formatDate(tarefa.prazo),
+                    tarefa.responsavel,
+                  ])}
+                  onAddClick={handleAddTarefaList}
+                  onOptionsClick={handleEditTarefa}
+                  hidePlusIcon={true}
 
+                />
+              </div>
+            ),
+          },
+          {
+            label: 'Kanban',
+            content: (
+              <div>
+                <KanbanBoard
+                  tarefas={filteredTasks}
+                  statusList={statusList}
+                  onStatusChange={handleStatusChange}
+                  onTaskClick={handleTaskClick}
+                  onAddTask={handleAddTarefa} // Passando a função para adicionar tarefa
+                />
+              </div>
+            ),
+          },
+          {
+            label: 'Calendario',
+            content: (
+              <div>
+                <Calendar tarefas={filteredTasks} onTaskClick={handleTaskClick} />
+              </div>
+            ),
+          },
+        ]}
+      />
 
       <Toaster />
 
