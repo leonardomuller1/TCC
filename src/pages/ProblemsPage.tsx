@@ -40,7 +40,6 @@ const ProblemsPage = () => {
 
   const { toast } = useToast();
 
-
   useEffect(() => {
     const fetchProblemas = async () => {
       if (!user || !user.companyId) {
@@ -57,22 +56,23 @@ const ProblemsPage = () => {
         const { data, error } = await supabase
           .from('problema')
           .select('*')
-          .eq('empresa_id', user.companyId)
-          .single(); // We expect a single problem associated with the company
+          .eq('empresa_id', user.companyId);
 
         if (error) {
           throw new Error(error.message);
         }
 
-        if (data) {
-          setProblema(data);
-          setDescricao(data.descricao);
-          setResolvido(data.como_resolvido);
-          setImpacto(data.impacto);
-          setExemplos(data.exemplos);
-          setFrequencia(data.frequencia);
-          setSegmento(data.segmento);
-          setGravidade(data.gravidade);
+        if (data && data.length > 0) {
+          // Se problemas existirem, use o primeiro
+          const problemaExistente = data[0];
+          setProblema(problemaExistente);
+          setDescricao(problemaExistente.descricao);
+          setResolvido(problemaExistente.como_resolvido);
+          setImpacto(problemaExistente.impacto);
+          setExemplos(problemaExistente.exemplos);
+          setFrequencia(problemaExistente.frequencia);
+          setSegmento(problemaExistente.segmento);
+          setGravidade(problemaExistente.gravidade);
         } else {
           // Se não houver problemas, criar um novo
           const { data: novoProblema, error: insertError } = await supabase
@@ -80,13 +80,13 @@ const ProblemsPage = () => {
             .insert([
               {
                 empresa_id: user.companyId,
-                descricao: 'Descrição padrão',
-                como_resolvido: 'Solução padrão',
-                impacto: 'Impacto padrão',
-                exemplos: 'Exemplos padrão',
-                frequencia: 'Frequência padrão',
-                segmento: 'Segmento padrão',
-                gravidade: 'Gravidade padrão',
+                descricao: '',
+                como_resolvido: '',
+                impacto: '',
+                exemplos: '',
+                frequencia: '',
+                segmento: '',
+                gravidade: '',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               },
@@ -117,7 +117,7 @@ const ProblemsPage = () => {
     };
 
     fetchProblemas();
-  });
+  }, [toast, user]); // Certifique-se de incluir 'user' como dependência
 
   const handleSave = async () => {
     if (!problema || !problema.id) return;
@@ -177,72 +177,72 @@ const ProblemsPage = () => {
         <>
           <InputGroup
             title="Descrição geral do problema"
-            subtitle="Forneça uma visão geral clara e concisa do problema que sua startup está abordando. Inclua detalhes sobre a natureza do problema, quem é afetado por ele e por que é importante resolvê-lo."
+            subtitle="Forneça uma visão geral clara e concisa do problema que sua startup está abordando."
             label="Qual é a descrição geral do problema que sua startup visa resolver?"
             value={descricao}
             rows={6}
             onChange={(e) => setDescricao(e.target.value)}
-            placeholder="Forneça uma visão geral do problema que sua startup visa resolver. Ex: 'A falta de moradia acessível em áreas urbanas.'"
+            placeholder="Forneça uma visão geral do problema que sua startup visa resolver."
             divider
           />
           <InputGroup
             title="Como é resolvido atualmente"
-            subtitle="Descreva as soluções existentes que abordam o problema identificado. Isto pode incluir produtos, serviços, tecnologias ou métodos que estão sendo usados atualmente."
+            subtitle="Descreva as soluções existentes que abordam o problema identificado."
             label="Como o problema é resolvido atualmente?"
             value={resolvido}
             rows={6}
             onChange={(e) => setResolvido(e.target.value)}
-            placeholder="Descreva as soluções existentes que abordam o problema. Ex: 'Atualmente, o problema é resolvido através de políticas governamentais e ONGs.’"
+            placeholder="Descreva as soluções existentes que abordam o problema."
             divider
           />
           <InputGroup
             title="Impacto do problema"
-            subtitle="Detalhe os efeitos e as consequências do problema. Explique como o problema afeta os indivíduos ou organizações envolvidas e quais são as métricas relevantes que podem ser usadas para medir este impacto."
+            subtitle="Detalhe os efeitos e as consequências do problema."
             label="Qual é o impacto do problema identificado?"
             value={impacto}
             rows={6}
             onChange={(e) => setImpacto(e.target.value)}
-            placeholder="Explique os efeitos e consequências do problema. Ex: 'A falta de moradia acessível leva a um aumento na população de rua.'"
+            placeholder="Explique os efeitos e consequências do problema."
             divider
           />
           <InputGroup
             title="Exemplos e casos de uso"
-            subtitle="Forneça exemplos práticos e casos de uso que ilustram o problema em diferentes contextos. Isso ajuda a visualizar como o problema se manifesta na prática."
+            subtitle="Forneça exemplos práticos e casos de uso que ilustram o problema em diferentes contextos."
             label="Quais são alguns exemplos e casos de uso do problema?"
             value={exemplos}
             rows={6}
             onChange={(e) => setExemplos(e.target.value)}
-            placeholder="Forneça exemplos práticos e casos de uso que ilustram o problema. Ex: 'Em São Francisco, muitos trabalhadores de tecnologia não conseguem encontrar moradia acessível perto de seus locais de trabalho.'"
+            placeholder="Forneça exemplos práticos e casos de uso que ilustram o problema."
             divider
           />
           <InputGroup
             title="Frequência e ocorrência do problema"
-            subtitle="Explique com que frequência o problema ocorre e em quais circunstâncias. Inclua dados ou estatísticas, se disponíveis, para apoiar a frequência do problema."
+            subtitle="Explique com que frequência o problema ocorre."
             label="Qual é a frequência e ocorrência do problema?"
             value={frequencia}
             rows={6}
             onChange={(e) => setFrequencia(e.target.value)}
-            placeholder="Explique com que frequência o problema ocorre e em quais circunstâncias. Ex: 'O problema ocorre frequentemente em grandes cidades com alto custo de vida.'"
+            placeholder="Explique com que frequência o problema ocorre."
             divider
           />
           <InputGroup
-            title="Segmento de cliente afetados"
-            subtitle="Identifique os diferentes segmentos de clientes que são impactados pelo problema. Descreva como cada segmento é afetado e quais são suas principais necessidades e desafios relacionados ao problema."
+            title="Segmento de clientes afetados"
+            subtitle="Identifique os diferentes segmentos de clientes que são impactados pelo problema."
             label="Quais segmentos de clientes são afetados pelo problema?"
             value={segmento}
             rows={6}
             onChange={(e) => setSegmento(e.target.value)}
-            placeholder="Identifique os diferentes segmentos de clientes afetados pelo problema. Ex: 'Trabalhadores de baixa renda, estudantes universitários, e trabalhadores de tecnologia.'"
+            placeholder="Identifique os diferentes segmentos de clientes afetados pelo problema."
             divider
           />
           <InputGroup
             title="Gravidade do problema"
-            subtitle="Avalie a gravidade do problema para os clientes afetados. Discuta a importância de resolver o problema e quais são as possíveis consequências de não abordá-lo."
+            subtitle="Avalie a gravidade do problema para os clientes afetados."
             label="Qual é a gravidade do problema para os clientes afetados?"
             value={gravidade}
             rows={6}
             onChange={(e) => setGravidade(e.target.value)}
-            placeholder="Avalie a gravidade do problema para os clientes afetados. Ex: 'A falta de moradia acessível resulta em uma qualidade de vida reduzida e problemas de saúde mental.'"
+            placeholder="Avalie a gravidade do problema para os clientes afetados."
             divider
           />
           <Button onClick={handleSave} className="max-w-2xl">
