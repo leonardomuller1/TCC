@@ -48,7 +48,7 @@ const SolutionPage = () => {
       });
       return;
     }
-
+  
     try {
       // Buscar solução existente
       const { data, error } = await supabase
@@ -56,20 +56,23 @@ const SolutionPage = () => {
         .select('*')
         .eq('empresa_id', user.companyId)
         .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw new Error(error.message);
+  
+      if (error) {
+        // Se o erro não for de item não encontrado, trate-o
+        if (error.code !== 'PGRST116') {
+          throw new Error(error.message);
+        }
+        // Se o erro for de item não encontrado, significa que não há soluções para esta empresa
+        await createNewSolution();
+        return; // Retorne para evitar atualizar o estado com dados nulos
       }
-
+  
+      // Atualiza os estados se a solução já existe
       if (data) {
-        // Atualiza os estados se a solução já existe
         setSolucao(data);
         setDescricao(data.descricao);
         setDesafios(data.desafios);
         setFraseCurta(data.frase_curta);
-      } else {
-        // Se não houver solução, criar uma nova
-        await createNewSolution();
       }
     } catch (error) {
       toast({
@@ -79,6 +82,8 @@ const SolutionPage = () => {
       });
     }
   };
+  
+  
 
   const createNewSolution = async () => {
     try {
