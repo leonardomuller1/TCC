@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import AdminButtons from '../../pages/admin/AdminButtons'; // Importando o componente
+import { useEffect, useState } from 'react'; // Importando useEffect
 
 type NamePageMap = {
   '/problema': string;
@@ -30,7 +31,7 @@ const namePages: NamePageMap = {
   '/financeiro': 'Estrutura de custos e receita',
   '/andamento': 'Métricas chaves e andamento',
   '/configuracao': 'Configurações',
-  '/admin': 'Painel Admistrador',
+  '/admin': 'Painel Administrador',
 };
 
 function HeaderTopDashboard() {
@@ -39,6 +40,7 @@ function HeaderTopDashboard() {
   const currentPath = location.pathname as keyof NamePageMap;
   const dynamicName = namePages[currentPath] || '';
   const { user, setUser } = useAuthStore();
+  const [name, setName] = useState<string | null>(null); // Inicializando o estado como string ou null
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -49,6 +51,26 @@ function HeaderTopDashboard() {
       navigate('/login');
     }
   };
+
+  useEffect(() => {
+    const fetchName = async () => {
+      if (user?.companyId) { // Verifique se user e companyId estão disponíveis
+        const { data, error } = await supabase
+          .from('empresas')
+          .select('nome')
+          .eq('id', user.companyId)
+          .single();
+
+        if (error) {
+          console.error('Erro ao buscar nome da empresa:', error.message);
+        } else {
+          setName(data.nome);
+        }
+      }
+    };
+
+    fetchName();
+  }, [user]); // Adicionando user como dependência
 
   return (
     <div className="w-full bg-white border-b border-gray-200 py-4 px-4 sm:px-8 md:px-16 lg:px-32">
@@ -72,9 +94,12 @@ function HeaderTopDashboard() {
                 Bem-vindo, {user.name}
               </p>
             )}
-            
-            {user.is_master && <AdminButtons empresaId={user.companyId}/>}{' '}
-            {/* Exibe os botões de admin se user.is_master for true */}
+            {user.is_master && (
+              <p className="text-gray-900 font-normal text-sm hidden md:block">
+                {name || user.companyId} {/* Exibindo o nome da empresa ou companyId como fallback */}
+              </p>
+            )}
+            {user.is_master && <AdminButtons empresaId={user.companyId} />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">
