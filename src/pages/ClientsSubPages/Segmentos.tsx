@@ -67,7 +67,7 @@ const Segmentos = () => {
   const [newRelation, setNewRelation] = useState<string>('');
   const [filterName, setFilterName] = useState<string>(''); // Estado para o filtro de nome
   const [filterVaiAtender, setFilterVaiAtender] = useState<string>('none'); // Estado para o filtro de "Vai Atender"
-  const [filterTipoCliente, setFilterTipoCliente] = useState<string>('none'); // Estado para o filtro de "Tipo de Cliente"
+  const [filterTipoCliente, setFilterTipoCliente] = useState<string>(''); 
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {

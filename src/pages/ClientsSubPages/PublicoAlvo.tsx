@@ -133,11 +133,13 @@ const PublicoAlvo = () => {
 
   const handleAddPublico = () => {
     clearForm();
+    fetchSegmentosCliente();
     setOpenDialogNewPublico(true);
   };
 
   const handleEditPublico = (rowIndex: number) => {
     const publico = publicosAlvo[rowIndex];
+    fetchSegmentosCliente();
     setSelectedPublico(publico);
     setOpenDialogEditPublico(true);
   };
