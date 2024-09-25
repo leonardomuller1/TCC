@@ -249,6 +249,7 @@ const FinancialsPage = () => {
                 name="nome"
                 value={newRegistro.nome || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-4">
@@ -258,6 +259,7 @@ const FinancialsPage = () => {
                 onValueChange={(value) =>
                   handleSelectChange('tipo', value)
                 }
+                required={true}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione o tipo" />
@@ -278,6 +280,7 @@ const FinancialsPage = () => {
                 name="categoria"
                 value={newRegistro.categoria || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-4">
@@ -288,6 +291,7 @@ const FinancialsPage = () => {
                 name="data"
                 value={newRegistro.data || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-4">
@@ -299,6 +303,7 @@ const FinancialsPage = () => {
                 name="valor"
                 value={newRegistro.valor || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <DialogFooter>
@@ -339,6 +344,7 @@ const FinancialsPage = () => {
                 name="nome"
                 value={selectedRegistro?.nome || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-4">
@@ -368,6 +374,7 @@ const FinancialsPage = () => {
                 name="categoria"
                 value={selectedRegistro?.categoria || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-4">
@@ -378,6 +385,7 @@ const FinancialsPage = () => {
                 name="data"
                 value={selectedRegistro?.data || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-4">
@@ -389,6 +397,7 @@ const FinancialsPage = () => {
                 name="valor"
                 value={selectedRegistro?.valor || ''}
                 onChange={handleChange}
+                required
               />
             </div>
             <DialogFooter>

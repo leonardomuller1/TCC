@@ -442,6 +442,7 @@ const Tasks = () => {
                     name="nome"
                     value={newTarefa.nome || ''}
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 <div className="mb-4">
@@ -485,6 +486,7 @@ const Tasks = () => {
                     name="prazo"
                     value={newTarefa.prazo || ''}
                     onChange={handleChange}
+                    required 
                   />
                 </div>
                 <div className="mb-4">

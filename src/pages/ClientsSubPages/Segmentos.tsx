@@ -336,6 +336,7 @@ const Segmentos = () => {
                     name="nome"
                     value={newSegmento.nome || ''}
                     onChange={handleChange}
+                    
                   />
                 </div>
                 <div className="mb-4">

@@ -156,11 +156,14 @@ const Metrics = () => {
         .update({ ...selectedMetrica, valores })
         .eq('id', selectedMetrica.id);
       if (error) throw error;
-      setMetricas(
-        metricas.map((met) =>
-          met.id === selectedMetrica.id ? selectedMetrica : met,
-        ),
+      
+      // Atualiza o estado local imediatamente
+      setMetricas((prevMetricas) =>
+        prevMetricas.map((met) =>
+          met.id === selectedMetrica.id ? { ...selectedMetrica, valores } : met
+        )
       );
+      
       clearForm();
       setOpenDialogEditMetrica(false);
       toast({
@@ -293,6 +296,7 @@ const Metrics = () => {
                     name="nome"
                     value={newMetrica.nome || ''}
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 <div className="mb-4">
@@ -396,6 +400,7 @@ const Metrics = () => {
                       name="nome"
                       value={selectedMetrica.nome || ''}
                       onChange={handleChange}
+                      required
                     />
                   </div>
                   <div className="mb-4">

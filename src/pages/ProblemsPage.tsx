@@ -74,11 +74,21 @@ const ProblemsPage = () => {
           setSegmento(problemaExistente.segmento);
           setGravidade(problemaExistente.gravidade);
         } else {
-          // Se não houver problemas, criar um novo
-          const { data: novoProblema, error: insertError } = await supabase
+          // Se não houver problemas, verificar se já existe um com o mesmo id da empresa
+          const { data: problemasExistentes, error: fetchError } = await supabase
             .from('problema')
-            .insert([
-              {
+            .select('*')
+            .eq('empresa_id', user.companyId);
+
+          if (fetchError) {
+            throw new Error(fetchError.message);
+          }
+
+          if (problemasExistentes.length === 0) {
+            // Se não houver nenhum problema existente, criar um novo
+            const { data: novoProblema, error: insertError } = await supabase
+              .from('problema')
+              .insert([{
                 empresa_id: user.companyId,
                 descricao: '',
                 como_resolvido: '',
@@ -89,23 +99,23 @@ const ProblemsPage = () => {
                 gravidade: '',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-              },
-            ])
-            .select()
-            .single();
+              }])
+              .select()
+              .single();
 
-          if (insertError) {
-            throw new Error(insertError.message);
+            if (insertError) {
+              throw new Error(insertError.message);
+            }
+
+            setProblema(novoProblema);
+            setDescricao(novoProblema.descricao);
+            setResolvido(novoProblema.como_resolvido);
+            setImpacto(novoProblema.impacto);
+            setExemplos(novoProblema.exemplos);
+            setFrequencia(novoProblema.frequencia);
+            setSegmento(novoProblema.segmento);
+            setGravidade(novoProblema.gravidade);
           }
-
-          setProblema(novoProblema);
-          setDescricao(novoProblema.descricao);
-          setResolvido(novoProblema.como_resolvido);
-          setImpacto(novoProblema.impacto);
-          setExemplos(novoProblema.exemplos);
-          setFrequencia(novoProblema.frequencia);
-          setSegmento(novoProblema.segmento);
-          setGravidade(novoProblema.gravidade);
         }
       } catch (error) {
         toast({
@@ -157,7 +167,7 @@ const ProblemsPage = () => {
           : null,
       );
       toast({
-        description:'Dados salvos com sucesso',
+        description: 'Dados salvos com sucesso',
         className: 'bg-green-300',
         duration: 4000,
       });

@@ -62,36 +62,50 @@ const SolutionPage = () => {
       }
 
       if (data) {
+        // Atualiza os estados se a solução já existe
         setSolucao(data);
         setDescricao(data.descricao);
         setDesafios(data.desafios);
         setFraseCurta(data.frase_curta);
       } else {
         // Se não houver solução, criar uma nova
-        const { data: novaSolucao, error: insertError } = await supabase
-          .from('solucao')
-          .insert([
-            {
-              empresa_id: user.companyId,
-              descricao: '',
-              desafios: '',
-              frase_curta: '',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          ])
-          .select()
-          .single();
-
-        if (insertError) {
-          throw new Error(insertError.message);
-        }
-
-        setSolucao(novaSolucao);
-        setDescricao(novaSolucao.descricao);
-        setDesafios(novaSolucao.desafios);
-        setFraseCurta(novaSolucao.frase_curta);
+        await createNewSolution();
       }
+    } catch (error) {
+      toast({
+        description: (error as Error).message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
+  const createNewSolution = async () => {
+    try {
+      const { data: novaSolucao, error: insertError } = await supabase
+        .from('solucao')
+        .insert([
+          {
+            empresa_id: user?.companyId,
+            descricao: '',
+            desafios: '',
+            frase_curta: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
+
+      // Atualiza os estados com a nova solução
+      setSolucao(novaSolucao);
+      setDescricao(novaSolucao.descricao);
+      setDesafios(novaSolucao.desafios);
+      setFraseCurta(novaSolucao.frase_curta);
     } catch (error) {
       toast({
         description: (error as Error).message,
@@ -169,31 +183,31 @@ const SolutionPage = () => {
             divider
           />
 
-          <Benefits/>
+          <Benefits />
 
-          <Features/>
+          <Features />
 
-          <CustomerExperience/>
+          <CustomerExperience />
           
           <InputGroup
             title="Proposta de Valor"
             subtitle={
-                <>
-                  A metodologia 5W2H é uma excelente escolha para estruturar a proposta de valor, pois ajuda a garantir que todos os aspectos importantes sejam abordados de maneira clara e completa.
-                  <br />
-                  <br />
-                  <strong>Metodologia 5W2H</strong>
-                  <ul>
-                    <li>• What (O que): O que é a proposta de valor?</li>
-                    <li>• Why (Por que): Por que a proposta de valor é importante? Quais problemas ela resolve?</li>
-                    <li>• Who (Quem): Quem se beneficiará com essa proposta de valor?</li>
-                    <li>• Where (Onde): Onde essa proposta de valor será implementada ou utilizada?</li>
-                    <li>• When (Quando): Quando a proposta de valor será implementada ou estará disponível?</li>
-                    <li>• How (Como): Como a proposta de valor será implementada?</li>
-                    <li>• How much (Quanto): Quanto custará implementar ou utilizar essa proposta de valor?</li>
-                  </ul>
-                </>
-              }
+              <>
+                A metodologia 5W2H é uma excelente escolha para estruturar a proposta de valor, pois ajuda a garantir que todos os aspectos importantes sejam abordados de maneira clara e completa.
+                <br />
+                <br />
+                <strong>Metodologia 5W2H</strong>
+                <ul>
+                  <li>• What (O que): O que é a proposta de valor?</li>
+                  <li>• Why (Por que): Por que a proposta de valor é importante? Quais problemas ela resolve?</li>
+                  <li>• Who (Quem): Quem se beneficiará com essa proposta de valor?</li>
+                  <li>• Where (Onde): Onde essa proposta de valor será implementada ou utilizada?</li>
+                  <li>• When (Quando): Quando a proposta de valor será implementada ou estará disponível?</li>
+                  <li>• How (Como): Como a proposta de valor será implementada?</li>
+                  <li>• How much (Quanto): Quanto custará implementar ou utilizar essa proposta de valor?</li>
+                </ul>
+              </>
+            }
             label="Frase curta"
             value={fraseCurta}
             rows={3}
