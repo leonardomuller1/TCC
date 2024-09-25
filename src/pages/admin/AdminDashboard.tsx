@@ -52,7 +52,8 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <CardPages>
-      <h1 className="text-gray-900 font-bold text-2xl">Estrutura de custos e receita</h1>
+      <h1 className="text-gray-900 font-bold text-2xl">
+      Painel Administrador</h1>
       {loading ? (
         <p>Carregando...</p>
       ) : (

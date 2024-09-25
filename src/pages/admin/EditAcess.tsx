@@ -97,7 +97,7 @@ function EditarAcessoDialog({ empresaId }: { empresaId: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Editar Acessos</Button>
+        <Button  variant="outline">Editar Acessos</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogTitle>Editar Acessos</DialogTitle>

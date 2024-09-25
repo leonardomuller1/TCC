@@ -6,13 +6,12 @@ function AdminButtons({ empresaId }: { empresaId: string }) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex gap-2">
-      <Button variant="outline" onClick={() => navigate('/admin')}>
+    <div className="flex gap-1">
+      <Button variant="outline" onClick={() => navigate('/admin')} className='mr-1'>
         Painel Admin
       </Button>
       <EditarAcessoDialog empresaId={empresaId} />
-      <Button variant="outline" onClick={() => navigate('/export-data')}>
-        Exportar Dados
+      <Button variant="outline" onClick={() => navigate('/export-data')}>Exportar Dados
       </Button>
     </div>
   );
