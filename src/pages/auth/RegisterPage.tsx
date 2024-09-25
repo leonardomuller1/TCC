@@ -56,12 +56,16 @@ function RegisterPage() {
     }
 
     // Cria a conta no supabase
-    const { data: registerData, error: registerError } =
-      await supabase.auth.signUp({ email, password });
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
+      {
+        email,
+        password,
+      },
+    );
 
-    if (registerError) {
+    if (signUpError) {
       toast({
-        description: registerError.message,
+        description: signUpError.message,
         className: 'bg-red-300',
         duration: 4000,
       });
@@ -69,7 +73,7 @@ function RegisterPage() {
       return;
     }
 
-    const userId = registerData.user?.id;
+    const userId = signUpData.user?.id;
 
     if (!userId) {
       toast({
@@ -88,6 +92,28 @@ function RegisterPage() {
       .join('');
     const avatarUrl = `https://ui-avatars.com/api/?name=${initials}&background=random&size=256`;
 
+    // Cria o usuário com ID da empresa e avatar
+    const {error: userError } = await supabase
+      .from('usuarios')
+      .insert([
+        {
+          id: userId,
+          nome: name,
+          email,
+          foto: avatarUrl,
+        },
+      ]);
+
+    if (userError) {
+      toast({
+        description: userError.message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      setLoading(false);
+      return;
+    }
+
     // Cria a empresa
     const { data: companyData, error: companyError } = await supabase
       .from('empresas')
@@ -105,39 +131,15 @@ function RegisterPage() {
       return;
     }
 
-    // Cria o usuário com ID da empresa e avatar
-    const { data: userData, error: userError } = await supabase
+    // Atualiza o usuário com o ID da empresa
+    const { error: userUpdateError } = await supabase
       .from('usuarios')
-      .insert([
-        {
-          id: userId,
-          nome: name,
-          email,
-          empresa: companyData.id,
-          foto: avatarUrl,
-        },
-      ])
-      .select()
-      .single();
+      .update({ empresa: companyData.id }) // Adiciona o ID da empresa ao usuário
+      .eq('id', userId);
 
-    if (userError) {
+    if (userUpdateError) {
       toast({
-        description: userError.message,
-        className: 'bg-red-300',
-        duration: 4000,
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Adiciona o usuário à empresa
-    const { error: associacaoError } = await supabase
-      .from('empresa_usuarios')
-      .insert([{ empresa_id: companyData.id, usuario_id: userData.id }]);
-
-    if (associacaoError) {
-      toast({
-        description: associacaoError.message,
+        description: userUpdateError.message,
         className: 'bg-red-300',
         duration: 4000,
       });
@@ -157,7 +159,7 @@ function RegisterPage() {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-row">
-      <CardAuthComponent/>
+      <CardAuthComponent />
 
       <div className="flex justify-center items-center w-screen p-4">
         <div className="flex flex-col gap-4">
