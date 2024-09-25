@@ -66,7 +66,7 @@ function LoginPage() {
 
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
-      .select('id, nome, email, empresa,foto')
+      .select('id, nome, email, empresa,foto, is_master')
       .eq('id', userId)
       .single();
 
@@ -102,6 +102,7 @@ function LoginPage() {
       email: userData.email,
       name: userData.nome,
       foto: userData.foto,
+      is_master: userData.is_master
     };
 
     setUserId(userId);
@@ -112,7 +113,12 @@ function LoginPage() {
       duration: 4000,
     });
     setLoading(false);
-    navigate('/dashboard');
+    // Redireciona o usuário após login com base se é admin
+    if (userData.is_master) {
+      navigate('/admin');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const handlePasswordReset = async (e: { preventDefault: () => void }) => {

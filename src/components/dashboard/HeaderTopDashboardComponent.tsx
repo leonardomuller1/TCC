@@ -37,6 +37,7 @@ type User = {
   foto: string;
   email: string;
   companyId: string;
+  is_master: boolean; 
 };
 
 function HeaderTopDashboard() {
@@ -51,7 +52,7 @@ function HeaderTopDashboard() {
       if (userId) {
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
-          .select('nome, foto, email, empresa')
+          .select('nome, foto, email, empresa,is_master')
           .eq('id', userId)
           .single();
 
@@ -77,6 +78,7 @@ function HeaderTopDashboard() {
           foto: userData.foto,
           email: userData.email,
           companyId: companyData.id,
+          is_master: userData.is_master
         };
 
         setUser(userWithCompanyId);

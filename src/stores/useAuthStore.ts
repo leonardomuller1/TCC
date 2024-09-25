@@ -7,6 +7,7 @@ interface User {
   companyId: string;
   name: string;
   foto: string;
+  is_master: boolean; 
 }
 
 interface AuthState {

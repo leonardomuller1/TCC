@@ -18,6 +18,8 @@ import FinancialsPage from './pages/FinancialsPage';
 import CompetitorAnalysis from './pages/CompetitorAnalysisPage';
 import MetricsPage from './pages/MetricsPage';
 import ConfigurationPage from './pages/ConfigurationPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
 
 function App() {
   return (
@@ -74,6 +76,10 @@ function App() {
           <Route path="/configuracao" element={<ConfigurationPage />} />
         </Route>
 
+        {/* ADMIN TELAS */}
+        <Route element={<AdminProtectedRoute />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
         {/* QUALQUER ROTA JOGA PARA A DASHBOARD */}
         <Route element={<ProtectedRoute />}>
           <Route path="*" element={<DashboardPage />} />
