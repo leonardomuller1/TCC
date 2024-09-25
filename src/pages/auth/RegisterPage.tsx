@@ -93,16 +93,14 @@ function RegisterPage() {
     const avatarUrl = `https://ui-avatars.com/api/?name=${initials}&background=random&size=256`;
 
     // Cria o usuário com ID da empresa e avatar
-    const {error: userError } = await supabase
-      .from('usuarios')
-      .insert([
-        {
-          id: userId,
-          nome: name,
-          email,
-          foto: avatarUrl,
-        },
-      ]);
+    const { error: userError } = await supabase.from('usuarios').insert([
+      {
+        id: userId,
+        nome: name,
+        email,
+        foto: avatarUrl,
+      },
+    ]);
 
     if (userError) {
       toast({
@@ -140,6 +138,20 @@ function RegisterPage() {
     if (userUpdateError) {
       toast({
         description: userUpdateError.message,
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { error: associationError } = await supabase
+      .from('empresa_usuarios')
+      .insert([{ empresa_id: companyData.id, usuario_id: userId }]);
+
+    if (associationError) {
+      toast({
+        description: associationError.message,
         className: 'bg-red-300',
         duration: 4000,
       });

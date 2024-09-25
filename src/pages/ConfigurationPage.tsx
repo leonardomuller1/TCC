@@ -44,6 +44,7 @@ function ConfigurationPage() {
     email: string;
   } | null>(null);
   const [openDialogUserDetails, setOpenDialogUserDetails] = useState(false);
+  const [isCompanyCreator, setIsCompanyCreator] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -68,6 +69,7 @@ function ConfigurationPage() {
       };
       fetchUserData();
       fetchMembers();
+      checkIfUserIsCompanyCreator();
     }
   }, [user, toast]);
 
@@ -252,6 +254,12 @@ function ConfigurationPage() {
       setLoadingNewUser(false);
       return;
     }
+    // Gera a URL do avatar com as iniciais
+    const initials = newUserName
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
+    const avatarUrl = `https://ui-avatars.com/api/?name=${initials}&background=random&size=256`;
 
     // Cria o usuario com ID da empresa
     const { error: userError } = await supabase.from('usuarios').insert([
@@ -260,6 +268,7 @@ function ConfigurationPage() {
         nome: newUserName,
         email: newUserEmail,
         empresa: user?.companyId,
+        foto: avatarUrl
       },
     ]);
 
@@ -305,7 +314,7 @@ function ConfigurationPage() {
         .from('empresas')
         .select('userCreate')
         .eq('userCreate', userId);
-  
+
       if (companyError) {
         toast({
           description: companyError.message,
@@ -314,7 +323,7 @@ function ConfigurationPage() {
         });
         return;
       }
-  
+
       if (companyData && companyData.length > 0) {
         toast({
           description: 'O criador da empresa não pode ser excluído.',
@@ -323,52 +332,51 @@ function ConfigurationPage() {
         });
         return;
       }
-  
+
       // Remove o usuário da tabela 'empresa_usuarios'
       const { error: empresaUsuariosError } = await supabase
         .from('empresa_usuarios')
         .delete()
         .eq('usuario_id', userId);
-  
+
       if (empresaUsuariosError) {
         throw empresaUsuariosError;
       }
-  
+
       // Remove o usuário da tabela 'usuarios'
       const { error: usuariosError } = await supabase
         .from('usuarios')
         .delete()
         .eq('id', userId);
-  
+
       if (usuariosError) {
         throw usuariosError;
       }
-  
+
       // Remove o usuário da autenticação do Supabase
       const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-  
+
       if (authError) {
         throw authError;
       }
-  
+
       // Atualiza a lista de membros da equipe
       fetchMembers();
-  
+
       toast({
         description: 'Usuário excluído com sucesso!',
         className: 'bg-green-300',
         duration: 4000,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        description: error.message,
+        description: (error as Error).message,
         className: 'bg-red-300',
         duration: 4000,
       });
     }
   };
-  
-  
+
   const handleViewUserDetails = (rowIndex: number) => {
     const userId = teamMembers[rowIndex].id;
     const userNome = teamMembers[rowIndex].nome;
@@ -394,6 +402,25 @@ function ConfigurationPage() {
       }
     };
     fetchUserEmail();
+  };
+
+  const checkIfUserIsCompanyCreator = async () => {
+    if (user) {
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('userCreate')
+        .eq('id', user.companyId)
+        .single();
+      if (data) {
+        setIsCompanyCreator(data.userCreate === user.id);
+      } else if (error) {
+        toast({
+          description: error.message,
+          className: 'bg-red-300',
+          duration: 4000,
+        });
+      }
+    }
   };
 
   return (
@@ -447,6 +474,7 @@ function ConfigurationPage() {
           rows={teamMembers.map((member) => [member.nome])}
           onAddClick={() => setOpenDialogNewUser(true)}
           onOptionsClick={(rowIndex) => handleViewUserDetails(rowIndex)}
+          hidePlusIcon={!isCompanyCreator}
         />
       </div>
       <Toaster />
@@ -523,7 +551,7 @@ function ConfigurationPage() {
               <DialogFooter>
                 <Button
                   type="button"
-                  variant='destructive'
+                  variant="destructive"
                   onClick={() => {
                     handleDeleteUser(selectedUser.id);
                     setOpenDialogUserDetails(false);
