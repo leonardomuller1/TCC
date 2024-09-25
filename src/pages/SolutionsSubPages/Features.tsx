@@ -237,18 +237,20 @@ const Features = () => {
         headers={['Título da Funcionalidade', 'Prioridade']}
         rows={funcionalidades.map((funcionalidade) => [
           funcionalidade.titulo,
-          <span
-            key={funcionalidade.id}
-            className={
-              funcionalidade.prioridade === 'Alta'
-                ? 'bg-red-200 text-red-800 px-2 py-1 rounded'
-                : funcionalidade.prioridade === 'Média'
-                  ? 'bg-orange-200 text-orange-800 px-2 py-1 rounded'
-                  : 'bg-green-200 text-green-800 px-2 py-1 rounded'
-            }
-          >
-            {funcionalidade.prioridade}
-          </span>,
+          funcionalidade.prioridade ? (
+            <span
+              key={funcionalidade.id}
+              className={
+                funcionalidade.prioridade === 'Alta'
+                  ? 'bg-red-200 text-red-800 px-2 py-1 rounded'
+                  : funcionalidade.prioridade === 'Média'
+                    ? 'bg-orange-200 text-orange-800 px-2 py-1 rounded'
+                    : 'bg-green-200 text-green-800 px-2 py-1 rounded'
+              }
+            >
+              {funcionalidade.prioridade}
+            </span>
+          ) : null,
         ])}
         onAddClick={handleAddFuncionalidade}
         onOptionsClick={handleEditFuncionalidade}

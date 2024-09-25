@@ -52,9 +52,13 @@ const CustomerExperience = () => {
 
   const [experiences, setExperiences] = useState<CustomerExperience[]>([]);
   const [openDialogNewExperience, setOpenDialogNewExperience] = useState(false);
-  const [openDialogEditExperience, setOpenDialogEditExperience] = useState(false);
-  const [newExperience, setNewExperience] = useState<Partial<CustomerExperience>>({});
-  const [selectedExperience, setSelectedExperience] = useState<CustomerExperience | null>(null);
+  const [openDialogEditExperience, setOpenDialogEditExperience] =
+    useState(false);
+  const [newExperience, setNewExperience] = useState<
+    Partial<CustomerExperience>
+  >({});
+  const [selectedExperience, setSelectedExperience] =
+    useState<CustomerExperience | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -109,12 +113,14 @@ const CustomerExperience = () => {
     }
 
     try {
-      const { data, error } = await supabase.from('customer_experiences').insert([
-        {
-          ...newExperience,
-          empresa_id: user.companyId,
-        },
-      ]);
+      const { data, error } = await supabase
+        .from('customer_experiences')
+        .insert([
+          {
+            ...newExperience,
+            empresa_id: user.companyId,
+          },
+        ]);
 
       if (error) throw error;
 
@@ -147,7 +153,7 @@ const CustomerExperience = () => {
     try {
       const { error } = await supabase
         .from('customer_experiences')
-        .update({ 
+        .update({
           titulo: selectedExperience.titulo,
           descricao: selectedExperience.descricao,
           categoria: selectedExperience.categoria,
@@ -158,8 +164,10 @@ const CustomerExperience = () => {
 
       setExperiences(
         experiences.map((experience) =>
-          experience.id === selectedExperience.id ? selectedExperience : experience
-        )
+          experience.id === selectedExperience.id
+            ? selectedExperience
+            : experience,
+        ),
       );
       clearForm();
       setOpenDialogEditExperience(false);
@@ -188,7 +196,9 @@ const CustomerExperience = () => {
       if (error) throw error;
 
       setExperiences(
-        experiences.filter((experience) => experience.id !== selectedExperience.id)
+        experiences.filter(
+          (experience) => experience.id !== selectedExperience.id,
+        ),
       );
       clearForm();
       setOpenDialogEditExperience(false);
@@ -209,7 +219,7 @@ const CustomerExperience = () => {
   const handleChange = (
     e:
       | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | { name: string; value: string }
+      | { name: string; value: string },
   ) => {
     const { name, value } = 'target' in e ? e.target : e;
     if (openDialogNewExperience) {
@@ -230,28 +240,34 @@ const CustomerExperience = () => {
 
   return (
     <div className="max-w-2xl">
-      <h4 className="text-gray-900 text-lg font-semibold">Experiência do Cliente</h4>
+      <h4 className="text-gray-900 text-lg font-semibold">
+        Experiência do Cliente
+      </h4>
       <h5 className="text-gray-500 text-sm font-normal mb-4">
-        Descreva as necessidades, medos e desejos mais importantes da sua solução para o seu cliente. 
-        Inclua detalhes sobre como essas experiências operam e contribuem para resolver os problemas dos usuários.
+        Descreva as necessidades, medos e desejos mais importantes da sua
+        solução para o seu cliente. Inclua detalhes sobre como essas
+        experiências operam e contribuem para resolver os problemas dos
+        usuários.
       </h5>
 
       <DataTable
         headers={['Título', 'Categoria']}
         rows={experiences.map((experience) => [
           experience.titulo,
-          <span
-            key={experience.id}
-            className={`px-2 py-1 rounded ${
-              experience.categoria === 'Necessidade'
-                ? 'bg-blue-200 text-blue-800'
-                : experience.categoria === 'Medo'
-                ? 'bg-red-200 text-red-800'
-                : 'bg-green-200 text-green-800'
-            }`}
-          >
-            {experience.categoria}
-          </span>,
+          experience.categoria ? (
+            <span
+              key={experience.id}
+              className={`px-2 py-1 rounded ${
+                experience.categoria === 'Necessidade'
+                  ? 'bg-blue-200 text-blue-800'
+                  : experience.categoria === 'Medo'
+                    ? 'bg-red-200 text-red-800'
+                    : 'bg-green-200 text-green-800'
+              }`}
+            >
+              {experience.categoria}
+            </span>
+          ) : null,
         ])}
         onAddClick={handleAddExperience}
         onOptionsClick={handleEditExperience}
@@ -268,7 +284,8 @@ const CustomerExperience = () => {
           <DialogHeader>
             <DialogTitle>Adicionar Nova Experiência do Cliente</DialogTitle>
             <DialogDescription>
-              Preencha as informações abaixo para adicionar uma nova experiência do cliente.
+              Preencha as informações abaixo para adicionar uma nova experiência
+              do cliente.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveNewExperience}>
@@ -296,7 +313,9 @@ const CustomerExperience = () => {
             <div className="mb-4">
               <Label htmlFor="categoria">Categoria</Label>
               <Select
-                onValueChange={(value) => handleSelectChange('categoria', value)}
+                onValueChange={(value) =>
+                  handleSelectChange('categoria', value)
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione a Categoria" />
@@ -355,7 +374,9 @@ const CustomerExperience = () => {
               <div className="mb-4">
                 <Label htmlFor="categoria">Categoria</Label>
                 <Select
-                  onValueChange={(value) => handleSelectChange('categoria', value)}
+                  onValueChange={(value) =>
+                    handleSelectChange('categoria', value)
+                  }
                   value={selectedExperience.categoria}
                 >
                   <SelectTrigger className="w-full">
