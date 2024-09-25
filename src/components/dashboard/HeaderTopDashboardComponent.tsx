@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '../../supabaseClient';
@@ -10,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import AdminButtons from './AdminButtons'; // Importando o componente
 
 type NamePageMap = {
   '/problema': string;
@@ -19,6 +19,7 @@ type NamePageMap = {
   '/financeiro': string;
   '/andamento': string;
   '/configuracao': string;
+  '/admin': string;
 };
 
 const namePages: NamePageMap = {
@@ -29,15 +30,7 @@ const namePages: NamePageMap = {
   '/financeiro': 'Estrutura de custos e receita',
   '/andamento': 'Métricas chaves e andamento',
   '/configuracao': 'Configurações',
-};
-
-type User = {
-  id: string;
-  name: string;
-  foto: string;
-  email: string;
-  companyId: string;
-  is_master: boolean; 
+  '/admin': 'Painel Admistrador',
 };
 
 function HeaderTopDashboard() {
@@ -45,48 +38,7 @@ function HeaderTopDashboard() {
   const navigate = useNavigate();
   const currentPath = location.pathname as keyof NamePageMap;
   const dynamicName = namePages[currentPath] || '';
-  const { userId, user, setUser } = useAuthStore();
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (userId) {
-        const { data: userData, error: userError } = await supabase
-          .from('usuarios')
-          .select('nome, foto, email, empresa,is_master')
-          .eq('id', userId)
-          .single();
-
-        if (userError) {
-          console.error(userError.message);
-          return;
-        }
-
-        const { data: companyData, error: companyError } = await supabase
-          .from('empresas')
-          .select('id')
-          .eq('id', userData.empresa)
-          .single();
-
-        if (companyError) {
-          console.error(companyError.message);
-          return;
-        }
-
-        const userWithCompanyId: User = {
-          id: userId,
-          name: userData.nome,
-          foto: userData.foto,
-          email: userData.email,
-          companyId: companyData.id,
-          is_master: userData.is_master
-        };
-
-        setUser(userWithCompanyId);
-      }
-    };
-
-    fetchUserData();
-  }, [userId, setUser]);
+  const { user, setUser } = useAuthStore();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -115,9 +67,13 @@ function HeaderTopDashboard() {
         </div>
         {user && (
           <div className="flex items-center gap-2">
-            <p className="text-gray-900 font-normal text-sm hidden md:block">
-              Bem-vindo, {user.name}
-            </p>
+            {!user.is_master && (
+              <p className="text-gray-900 font-normal text-sm hidden md:block">
+                Bem-vindo, {user.name}
+              </p>
+            )}
+            {user.is_master && <AdminButtons />}{' '}
+            {/* Exibe os botões de admin se user.is_master for true */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">

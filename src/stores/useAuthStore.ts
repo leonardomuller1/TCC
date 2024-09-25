@@ -7,7 +7,8 @@ interface User {
   companyId: string;
   name: string;
   foto: string;
-  is_master: boolean; 
+  is_master: boolean;
+  selectedCompanyId?: string;
 }
 
 interface AuthState {
@@ -29,23 +30,8 @@ const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       getStorage: () => localStorage,
       version: 1,
-      migrate: (persistedState, version) => {
-        if (version === 0) {
-          if (
-            typeof persistedState === 'object' &&
-            persistedState !== null &&
-            'user' in persistedState
-          ) {
-            const user = persistedState as unknown as User;
-            return {
-              userId: user.id || null,
-            };
-          }
-        }
-        return persistedState;
-      },
-    },
-  ),
+    }
+  )
 );
 
 export default useAuthStore;
