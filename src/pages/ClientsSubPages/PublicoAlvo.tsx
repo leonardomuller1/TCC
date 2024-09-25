@@ -102,7 +102,8 @@ const PublicoAlvo = () => {
     try {
       const { data, error } = await supabase
         .from('segmentoclientes')
-        .select('id, nome');
+        .select('id, nome')
+        .eq('empresa_id', user?.companyId);
       if (error) throw new Error(error.message);
       setSegmentosCliente(data || []);
     } catch (error) {
@@ -112,7 +113,7 @@ const PublicoAlvo = () => {
         duration: 4000,
       });
     }
-  }, [toast]);
+  }, [toast, user?.companyId]);
 
   useEffect(() => {
     fetchData();
