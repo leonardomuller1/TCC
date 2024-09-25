@@ -113,12 +113,24 @@ const Segmentos = () => {
 
   const handleSaveNewSegmento = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!newSegmento.nome || !newSegmento.tipo_cliente) {
+      toast({
+        description: 'Preencha todos os campos obrigatórios!',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      return;
+    }
     try {
       const { data, error } = await supabase.from('segmentoclientes').insert([
         {
           ...newSegmento,
           empresa_id: user?.companyId,
           relations,
+          vai_atender:
+            newSegmento.vai_atender !== undefined
+              ? newSegmento.vai_atender
+              : false, // Garantir que vai_atender seja enviado
         },
       ]);
 
@@ -149,10 +161,25 @@ const Segmentos = () => {
   const handleSaveEditSegmento = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedSegmento) return;
+    if (!selectedSegmento.nome || !selectedSegmento.tipo_cliente) {
+      toast({
+        description: 'Preencha todos os campos obrigatórios!',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      return;
+    }
     try {
       const { error } = await supabase
         .from('segmentoclientes')
-        .update({ ...selectedSegmento, relations })
+        .update({
+          ...selectedSegmento,
+          relations,
+          vai_atender:
+            selectedSegmento.vai_atender !== undefined
+              ? selectedSegmento.vai_atender
+              : false, // Garantir que vai_atender seja enviado
+        })
         .eq('id', selectedSegmento.id);
       if (error) throw error;
       setSegmentosClientes(
@@ -174,6 +201,7 @@ const Segmentos = () => {
         duration: 4000,
       });
     }
+    setRelations([]);
   };
 
   const handleDeleteSegmento = async () => {
@@ -216,10 +244,6 @@ const Segmentos = () => {
     }
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    handleChange({ name, value });
-  };
-
   const clearForm = () => {
     setNewSegmento({});
     setSelectedSegmento(null);
@@ -229,13 +253,43 @@ const Segmentos = () => {
 
   const addRelation = () => {
     if (newRelation.trim() !== '') {
-      setRelations((prev) => [...prev, newRelation]);
+      setRelations((prev) => {
+        const updatedRelations = [...prev, newRelation];
+        if (selectedSegmento) {
+          // Atualiza as relações no segmento selecionado
+          setSelectedSegmento((prevSegmento) => {
+            if (prevSegmento) {
+              return {
+                ...prevSegmento,
+                relations: updatedRelations,
+              };
+            }
+            return prevSegmento; // Retorna o segmento anterior se for null
+          });
+        }
+        return updatedRelations;
+      });
       setNewRelation('');
     }
   };
 
   const removeRelation = (index: number) => {
-    setRelations((prev) => prev.filter((_, i) => i !== index));
+    setRelations((prev) => {
+      const updatedRelations = prev.filter((_, i) => i !== index);
+      if (selectedSegmento) {
+        // Atualiza as relações no segmento selecionado
+        setSelectedSegmento((prevSegmento) => {
+          if (prevSegmento) {
+            return {
+              ...prevSegmento,
+              relations: updatedRelations,
+            };
+          }
+          return prevSegmento; // Retorna o segmento anterior se for null
+        });
+      }
+      return updatedRelations;
+    });
   };
 
   // Filtrar os segmentos com base no nome
@@ -243,11 +297,12 @@ const Segmentos = () => {
     const nameMatch = (segmento.nome || '')
       .toLowerCase()
       .includes(filterName.toLowerCase());
-    const tipoMatch =
-      filterTipoCliente === 'none' ||
-      (segmento.tipo_cliente || '').toLowerCase() ===
-        filterTipoCliente.toLowerCase();
-        const atenderMatch = filterVaiAtender === 'none' || segmento.vai_atender.toString() === filterVaiAtender;
+      const tipoMatch = (segmento.tipo_cliente || '')
+      .toLowerCase()
+      .includes(filterTipoCliente.toLowerCase());
+    const atenderMatch =
+      filterVaiAtender === 'none' ||
+      segmento.vai_atender.toString() === filterVaiAtender;
 
     return nameMatch && tipoMatch && atenderMatch;
   });
@@ -262,22 +317,14 @@ const Segmentos = () => {
           onChange={(e) => setFilterName(e.target.value)}
           className="h-10"
         />
-        <Select
-          onValueChange={(value) => setFilterTipoCliente(value)}
+        <Input
+          type="text"
+          placeholder="Filtrar por tipo de cliente"
           value={filterTipoCliente}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Filtrar por tipo de cliente" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="none">Filtrar por tipo de cliente</SelectItem>
-              <SelectItem value="B2B">B2B (Empresa para Empresa)</SelectItem>
-              <SelectItem value="B2C">B2C (Empresa para Consumidor)</SelectItem>
-              <SelectItem value="B2G">B2G (Empresa para Governo)</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          onChange={(e) => setFilterTipoCliente(e.target.value)}
+          className="h-10"
+        />
+        
         <Select
           onValueChange={(value) => setFilterVaiAtender(value)}
           value={filterVaiAtender}
@@ -313,7 +360,6 @@ const Segmentos = () => {
       />
       <Toaster />
 
-      {/* Modal para adicionar novo segmento */}
       <Dialog
         open={openDialogNewSegmento}
         onOpenChange={setOpenDialogNewSegmento}
@@ -336,7 +382,7 @@ const Segmentos = () => {
                     name="nome"
                     value={newSegmento.nome || ''}
                     onChange={handleChange}
-                    
+                    required
                   />
                 </div>
                 <div className="mb-4">
@@ -363,38 +409,25 @@ const Segmentos = () => {
               <div>
                 <div className="mb-4">
                   <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
-                  <Select
-                    onValueChange={(value) =>
-                      handleSelectChange('tipo_cliente', value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione o tipo de cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="B2B">
-                          B2B (Empresa para Empresa)
-                        </SelectItem>
-                        <SelectItem value="B2C">
-                          B2C (Empresa para Consumidor)
-                        </SelectItem>
-                        <SelectItem value="B2G">
-                          B2G (Empresa para Governo)
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    type="text"
+                    id="tipo_cliente"
+                    name="tipo_cliente"
+                    value={newSegmento.tipo_cliente || ''}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="mb-4">
                   <Label htmlFor="vai_atender">Vai Atender</Label>
                   <Select
                     onValueChange={(value) =>
-                      handleSelectChange('vai_atender', value)
+                      handleChange({ name: 'vai_atender', value })
                     }
+                    value={newSegmento.vai_atender?.toString() || 'false'}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sim ou Não" />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -455,8 +488,6 @@ const Segmentos = () => {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Modal para editar segmento existente */}
       <Dialog
         open={openDialogEditSegmento}
         onOpenChange={setOpenDialogEditSegmento}
@@ -506,38 +537,26 @@ const Segmentos = () => {
                 <div>
                   <div className="mb-4">
                     <Label htmlFor="tipo_cliente">Tipo de Cliente</Label>
-                    <Select
-                      onValueChange={(value) =>
-                        handleSelectChange('tipo_cliente', value)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione o tipo de cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="B2B">
-                            B2B (Empresa para Empresa)
-                          </SelectItem>
-                          <SelectItem value="B2C">
-                            B2C (Empresa para Consumidor)
-                          </SelectItem>
-                          <SelectItem value="B2G">
-                            B2G (Empresa para Governo)
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      type="text"
+                      id="tipo_cliente"
+                      name="tipo_cliente"
+                      value={selectedSegmento.tipo_cliente || ''}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="mb-4">
                     <Label htmlFor="vai_atender">Vai Atender</Label>
                     <Select
                       onValueChange={(value) =>
-                        handleSelectChange('vai_atender', value)
+                        handleChange({ name: 'vai_atender', value })
+                      }
+                      value={
+                        selectedSegmento.vai_atender?.toString() || 'false'
                       }
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sim ou Não" />
+                        <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -592,7 +611,6 @@ const Segmentos = () => {
                   </div>
                 </div>
               </div>
-
               <DialogFooter className="gap-2">
                 <Button type="submit">Editar</Button>
                 <Button
