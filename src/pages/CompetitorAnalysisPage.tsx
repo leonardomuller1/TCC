@@ -6,6 +6,7 @@ import CardPages from '@/components/dashboard/CardPagesComponent';
 import { Input } from '@/components/ui/input'; // Componente Input
 import { Checkbox } from '@/components/ui/checkbox'; // Componente Checkbox
 import { TrashIcon, PlusIcon } from '@radix-ui/react-icons'; // ícones do Radix
+import { Toaster } from '@/components/ui/toaster';
 
 interface TableData {
   [key: string]: { [key: string]: boolean };
@@ -26,6 +27,7 @@ const CompetitorAnalysis: React.FC = () => {
         toast({
           description: 'Usuário não autenticado ou companyId ausente',
           duration: 4000,
+          className: 'bg-red-300',
         });
         return;
       }
@@ -73,28 +75,48 @@ const CompetitorAnalysis: React.FC = () => {
   ) => {
     try {
       const uniqueName = `competitors_${user?.companyId}`;
-      const { error } = await supabase.from('competitors').upsert(
-        {
-          empresa_id: user?.companyId,
-          name: uniqueName,
-          colunas: updatedColumns,
-          linhas: updatedRows,
-          dados: updatedData,
-        },
-        { onConflict: 'empresa_id' }  // Instead of an array, provide 'empresa_id' as a single string
-      );
       
-
-      if (error) throw new Error(error.message);
+      const dataToSave = {
+        empresa_id: user?.companyId,
+        name: uniqueName,
+        colunas: updatedColumns,
+        linhas: updatedRows,
+        dados: updatedData,
+      };
+  
+      console.log('Dados a serem salvos:', dataToSave);
+  
+      const { error } = await supabase
+        .from('competitors')
+        .upsert(dataToSave, { onConflict: 'empresa_id' });
+  
+      if (error) {
+        console.error('Erro ao salvar os dados:', error);
+        throw new Error(error.message);
+      }
     } catch (error) {
-      console.error('Erro ao salvar os dados:', error);
+      const errorMessage = (error as { message?: string })?.message || 'Erro desconhecido';
+      console.error('Erro inesperado ao salvar os dados:', errorMessage);
+      toast({
+        description: `Erro inesperado ao salvar os dados: ${errorMessage}`,
+        duration: 4000,
+        className: 'bg-red-300',
+      });
     }
   };
+  
+  
+  
 
   const handleAddColumn = () => {
-    const newColumnName = `Empresa ${String.fromCharCode(65 + columns.length)}`;
+    let newColumnName = `Empresa ${String.fromCharCode(65 + columns.length)}`;
+    
+    // Garantir que o nome da nova coluna seja único
+    while (columns.includes(newColumnName)) {
+      newColumnName = `${newColumnName}_1`; // Adiciona um sufixo para torná-lo único
+    }
+  
     const updatedColumns = [...columns, newColumnName];
-
     const newTableData = { ...tableData };
     rows.forEach((row) => {
       newTableData[row] = {
@@ -102,26 +124,32 @@ const CompetitorAnalysis: React.FC = () => {
         [newColumnName]: false,
       };
     });
-
+  
     setColumns(updatedColumns);
     setTableData(newTableData);
     saveData(updatedColumns, rows, newTableData);
   };
-
+  
   const handleAddRow = () => {
-    const newRowName = `Funcionalidade ${rows.length + 1}`;
+    let newRowName = `Funcionalidade ${rows.length + 1}`;
+  
+    // Garantir que o nome da nova linha seja único
+    while (rows.includes(newRowName)) {
+      newRowName = `${newRowName}_1`; // Adiciona um sufixo para torná-lo único
+    }
+  
     const updatedRows = [...rows, newRowName];
-
     const newTableData = { ...tableData };
     newTableData[newRowName] = {};
     columns.forEach((column) => {
       newTableData[newRowName][column] = false;
     });
-
+  
     setRows(updatedRows);
     setTableData(newTableData);
     saveData(columns, updatedRows, newTableData);
   };
+  
 
   const handleDeleteColumn = (colIndex: number) => {
     const columnToDelete = columns[colIndex];
@@ -159,34 +187,57 @@ const CompetitorAnalysis: React.FC = () => {
 
   const handleColumnTitleChange = (index: number, value: string) => {
     const oldColumnName = columns[index];
+    
+    // Verificar se o novo nome já existe
+    if (columns.includes(value)) {
+      toast({
+        description: 'O nome da coluna já existe. Por favor, escolha um nome diferente.',
+        duration: 4000,
+        className: 'bg-red-300',
+      });
+      return;
+    }
+  
     const updatedColumns = [...columns];
     updatedColumns[index] = value;
-
+  
     const newTableData = { ...tableData };
     Object.keys(newTableData).forEach((row) => {
       newTableData[row][value] = newTableData[row][oldColumnName];
       delete newTableData[row][oldColumnName];
     });
-
+  
     setColumns(updatedColumns);
     setTableData(newTableData);
     saveData(updatedColumns, rows, newTableData);
   };
-
+  
   const handleRowTitleChange = (index: number, value: string) => {
     const oldRowName = rows[index];
+  
+    // Verificar se o novo nome já existe
+    if (rows.includes(value)) {
+      toast({
+        description: 'O nome da funcionalidade já existe. Por favor, escolha um nome diferente.',
+        duration: 4000,
+        className: 'bg-red-300',
+
+      });
+      return;
+    }
+  
     const updatedRows = [...rows];
     updatedRows[index] = value;
-
+  
     const newTableData = { ...tableData };
     newTableData[value] = { ...newTableData[oldRowName] };
     delete newTableData[oldRowName];
-
+  
     setRows(updatedRows);
     setTableData(newTableData);
     saveData(columns, updatedRows, newTableData);
   };
-
+  
   if (loading) {
     return <div>Carregando...</div>;
   }
@@ -272,6 +323,8 @@ const CompetitorAnalysis: React.FC = () => {
           </button>
         </tbody>
       </table>
+      <Toaster />
+
     </CardPages>
   );
 };
