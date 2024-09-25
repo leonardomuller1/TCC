@@ -119,7 +119,7 @@ const Canais = () => {
       });
     } catch (error) {
       toast({
-        description: (error as Error).message,
+        description: 'Verifique os campos, e tente novamente!',
         className: 'bg-red-300',
         duration: 4000,
       });
@@ -149,7 +149,7 @@ const Canais = () => {
       });
     } catch (error) {
       toast({
-        description: (error as Error).message,
+        description: 'Verifique os campos, e tente novamente!',
         className: 'bg-red-300',
         duration: 4000,
       });
