@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import AdminButtons from './AdminButtons'; // Importando o componente
+import AdminButtons from '../../pages/admin/AdminButtons'; // Importando o componente
 
 type NamePageMap = {
   '/problema': string;
@@ -72,7 +72,8 @@ function HeaderTopDashboard() {
                 Bem-vindo, {user.name}
               </p>
             )}
-            {user.is_master && <AdminButtons />}{' '}
+            
+            {user.is_master && <AdminButtons empresaId={user.companyId}/>}{' '}
             {/* Exibe os botões de admin se user.is_master for true */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

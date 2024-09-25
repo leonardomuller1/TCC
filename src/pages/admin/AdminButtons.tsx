@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import EditarAcessoDialog from './EditAcess';
 
-function AdminButtons() {
+function AdminButtons({ empresaId }: { empresaId: string }) {
   const navigate = useNavigate();
 
   return (
@@ -9,9 +10,7 @@ function AdminButtons() {
       <Button variant="outline" onClick={() => navigate('/admin')}>
         Painel Admin
       </Button>
-      <Button variant="outline" onClick={() => navigate('/edit-access')}>
-        Editar Acessos
-      </Button>
+      <EditarAcessoDialog empresaId={empresaId} />
       <Button variant="outline" onClick={() => navigate('/export-data')}>
         Exportar Dados
       </Button>
