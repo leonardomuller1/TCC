@@ -14,6 +14,7 @@ import {
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/components/ui/use-toast';
 import EditarAcessoDialog from './EditAcess';
+import ExportFiles from './ExportFiles';
 
 interface Empresa {
   id: string;
@@ -59,14 +60,6 @@ const AdminDashboard: React.FC = () => {
   const handleDialogOption = (option: number) => {
     if (selectedEmpresa) {
       switch (option) {
-        case 1:
-          console.log(`Opção 1 selecionada para empresa: ${selectedEmpresa.nome}`);
-          toast({
-            description: `Acessos atualizados com sucesso!`,
-            className: 'bg-green-300',
-            duration: 4000,
-          });
-          break;
         case 2:
           setEditarAcessoOpen(true);
           return;
@@ -115,7 +108,7 @@ const AdminDashboard: React.FC = () => {
             <DialogTitle>Opções para {selectedEmpresa?.nome}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Button variant="outline" onClick={() => handleDialogOption(1)}>Opção 1</Button>
+            <ExportFiles empresaId={selectedEmpresa?.id || null} />
             <Button variant="outline" onClick={() => handleDialogOption(2)}>Editar Acesso</Button>
             <Button variant="outline" onClick={() => handleDialogOption(3)}>Selecionar Empresa</Button>
           </div>
