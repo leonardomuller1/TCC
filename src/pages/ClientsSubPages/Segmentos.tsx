@@ -35,6 +35,7 @@ import {
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
 import { PlusCircledIcon, TrashIcon } from '@radix-ui/react-icons';
+import FiltersSegmentos from './FiltersSegmentos';
 
 // Tipos
 type SegmentoClientes = {
@@ -67,7 +68,7 @@ const Segmentos = () => {
   const [newRelation, setNewRelation] = useState<string>('');
   const [filterName, setFilterName] = useState<string>(''); // Estado para o filtro de nome
   const [filterVaiAtender, setFilterVaiAtender] = useState<string>('none'); // Estado para o filtro de "Vai Atender"
-  const [filterTipoCliente, setFilterTipoCliente] = useState<string>(''); 
+  const [filterTipoCliente, setFilterTipoCliente] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -297,7 +298,7 @@ const Segmentos = () => {
     const nameMatch = (segmento.nome || '')
       .toLowerCase()
       .includes(filterName.toLowerCase());
-      const tipoMatch = (segmento.tipo_cliente || '')
+    const tipoMatch = (segmento.tipo_cliente || '')
       .toLowerCase()
       .includes(filterTipoCliente.toLowerCase());
     const atenderMatch =
@@ -309,42 +310,15 @@ const Segmentos = () => {
 
   return (
     <>
-      <div className="flex gap-4">
-        <Input
-          type="text"
-          placeholder="Filtrar por nome"
-          value={filterName}
-          onChange={(e) => setFilterName(e.target.value)}
-          className="h-10"
-        />
-        <Input
-          type="text"
-          placeholder="Filtrar por tipo de cliente"
-          value={filterTipoCliente}
-          onChange={(e) => setFilterTipoCliente(e.target.value)}
-          className="h-10"
-        />
-        
-        <Select
-          onValueChange={(value) => setFilterVaiAtender(value)}
-          value={filterVaiAtender}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Filtrar por tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="none">Filtrar por vai atender</SelectItem>
-              <SelectItem value="true">Sim</SelectItem>
-              <SelectItem value="false">Não</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button onClick={handleAddSegmento} className="gap-2">
-          <PlusCircledIcon className="text-primary-foreground" />
-          Adicionar segmento
-        </Button>
-      </div>
+      <FiltersSegmentos
+        filterName={filterName}
+        setFilterName={setFilterName}
+        filterTipoCliente={filterTipoCliente}
+        setFilterTipoCliente={setFilterTipoCliente}
+        filterVaiAtender={filterVaiAtender}
+        setFilterVaiAtender={setFilterVaiAtender}
+        handleAddSegmento={handleAddSegmento}
+      />
       <DataTable
         headers={['Nome', 'Área', 'Tipo de Cliente', 'Vai Atender', 'Relações']}
         rows={filteredSegmentos.map((segmento) => [

@@ -38,7 +38,7 @@ import Tab from '@/components/TabComponent';
 //auxiliares
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
-import { PlusCircledIcon } from '@radix-ui/react-icons';
+import FiltersTasks from './FiltersTasks';
 
 // Tipos
 type Tarefa = {
@@ -109,8 +109,12 @@ const Tasks = () => {
     fetchData();
   }, [fetchData]);
 
+  const handleAddTarefaWithoutArgs = () => {
+    handleAddTarefa('A fazer'); // or any other default status you want
+  };
+  
   const handleAddTarefa = (
-    statusOrEvent: string | React.MouseEvent<HTMLButtonElement>
+    statusOrEvent: string | React.MouseEvent<HTMLButtonElement>,
   ) => {
     let status: string;
 
@@ -125,7 +129,6 @@ const Tasks = () => {
     setNewTarefa({ status });
     setOpenDialogNewTarefa(true);
   };
-
 
   const handleAddTarefaList = () => {
     clearForm();
@@ -305,43 +308,15 @@ const Tasks = () => {
   });
   return (
     <>
-      <div className="flex gap-4">
-        <Input
-          type="text"
-          placeholder="Filtrar por nome da tarefa"
-          value={filterName}
-          onChange={(e) => setFilterName(e.target.value)}
-          className="h-10"
-        />
-        <Input
-          type="text"
-          placeholder="Filtrar por responsável"
-          value={filterResponsavel}
-          onChange={(e) => setFilterResponsavel(e.target.value)}
-          className="h-10"
-        />
-        <Select
-          onValueChange={(value) => setFilterStatus(value)}
-          value={filterStatus}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Status da tarefa" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="none">Status da tarefa</SelectItem>
-              <SelectItem value="A fazer">A fazer</SelectItem>
-              <SelectItem value="Fazendo">Fazendo</SelectItem>
-              <SelectItem value="Aprovação">Aprovação</SelectItem>
-              <SelectItem value="Feito">Feito</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button onClick={handleAddTarefa} className="gap-2">
-          <PlusCircledIcon className="text-primary-foreground" />
-          Adicionar tarefa
-        </Button>
-      </div>
+      <FiltersTasks
+        filterName={filterName}
+        setFilterName={setFilterName}
+        filterResponsavel={filterResponsavel}
+        setFilterResponsavel={setFilterResponsavel}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        handleAddTarefa={handleAddTarefaWithoutArgs}
+      />
       {/* so aparece no celular e tablet */}
       <DataTable
         className="md:hidden"
@@ -382,7 +357,6 @@ const Tasks = () => {
                   onAddClick={handleAddTarefaList}
                   onOptionsClick={handleEditTarefa}
                   hidePlusIcon={true}
-
                 />
               </div>
             ),
@@ -405,7 +379,10 @@ const Tasks = () => {
             label: 'Calendario',
             content: (
               <div>
-                <Calendar tarefas={filteredTasks} onTaskClick={handleTaskClick} />
+                <Calendar
+                  tarefas={filteredTasks}
+                  onTaskClick={handleTaskClick}
+                />
               </div>
             ),
           },
@@ -486,7 +463,7 @@ const Tasks = () => {
                     name="prazo"
                     value={newTarefa.prazo || ''}
                     onChange={handleChange}
-                    required 
+                    required
                   />
                 </div>
                 <div className="mb-4">
