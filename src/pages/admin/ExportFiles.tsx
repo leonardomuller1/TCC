@@ -25,6 +25,18 @@ type ProblemaData = {
   gravidade: string;
 };
 
+type Tarefa = {
+  id: number;
+  empresa_id: string;
+  nome: string;
+  descricao: string;
+  status: string;
+  prazo: string;
+  responsavel: string;
+  created_at: string;
+  updated_at: string;
+};
+
 const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -52,6 +64,63 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
     setExportDialogOpen(true);
   };
 
+  const exportTasks = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('tarefas')
+        .select('*')
+        .eq('empresa_id', empresaId);
+  
+      if (error) throw error;
+  
+      const csvRows = [];
+      // Header
+      csvRows.push([
+        'Nome',
+        'Descrição',
+        'Status',
+        'Prazo',
+        'Responsável',
+      ]);
+  
+      // Data rows
+      data.forEach((tarefa: Tarefa) => {
+        csvRows.push([
+          tarefa.nome,
+          tarefa.descricao,
+          tarefa.status,
+          tarefa.prazo,
+          tarefa.responsavel,
+        ]);
+      });
+  
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+  
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'tarefas.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+  
+      toast({
+        description: 'Dados de tarefas exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados de tarefas:', error);
+      toast({
+        description: 'Erro ao exportar dados de tarefas.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+  
+
   const handleExportOption = async (option: string) => {
     if (!empresaId) {
       toast({
@@ -67,6 +136,8 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
     try {
       if (option === 'competitors') {
         await exportCompetitors(empresaId); // empresaId agora está garantido como string
+      } else if (option === 'tarefas') {
+        await exportTasks(empresaId); // Chama a função de exportação de tarefas
       } else {
         const { data, error } = await supabase
           .from(option)
@@ -213,7 +284,7 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
             <Button variant="outline" onClick={() => handleExportOption('solucao')}>Solução</Button>
             <Button variant="outline" onClick={() => handleExportOption('concorrentes')}>Concorrentes</Button>
             <Button variant="outline" onClick={() => handleExportOption('financeiro')}>Financeiro</Button>
-            <Button variant="outline" onClick={() => handleExportOption('andamento')}>Andamento</Button>
+            <Button variant="outline" onClick={() => handleExportOption('tarefas')}>Tarefas</Button>
             <Button variant="outline" onClick={() => handleExportOption('competitors')}>Concorrentes</Button>
           </div>
           <DialogFooter>
