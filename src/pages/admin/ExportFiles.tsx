@@ -53,28 +53,37 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
   };
 
   const handleExportOption = async (option: string) => {
+    if (!empresaId) {
+      toast({
+        description: "Por favor, selecione uma empresa válida.",
+        className: 'bg-yellow-300',
+        duration: 4000,
+      });
+      return;
+    }
+  
     setExportDialogOpen(false);
-
+  
     try {
       if (option === 'competitors') {
-        await exportCompetitors(empresaId);
+        await exportCompetitors(empresaId); // empresaId agora está garantido como string
       } else {
         const { data, error } = await supabase
-          .from<ProblemaData>(option) // Especifica o tipo aqui
+          .from(option)
           .select('*')
           .eq('empresa_id', empresaId);
-
+  
         if (error) throw error;
-
+  
         const dadosPersonalizados = data.map((item: ProblemaData) => {
-          const itemPersonalizado: Record<string, string> = {}; // Tipo específico
+          const itemPersonalizado: Record<string, string> = {};
           Object.keys(campoPersonalizadoProblema).forEach((campoOriginal) => {
             const campoRenomeado = campoPersonalizadoProblema[campoOriginal as keyof ProblemaData];
             itemPersonalizado[campoRenomeado] = item[campoOriginal as keyof ProblemaData];
           });
           return itemPersonalizado;
         });
-
+  
         gerarPDF(dadosPersonalizados[0]);
         toast({
           description: `Dados de ${option} exportados com sucesso!`,
@@ -91,7 +100,7 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
       });
     }
   };
-
+  
   const exportCompetitors = async (empresaId: string) => {
     try {
       const { data, error } = await supabase
