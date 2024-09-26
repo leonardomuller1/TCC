@@ -1,7 +1,6 @@
+import { useEffect, useState } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-import useAuthStore from '@/stores/useAuthStore';
-import { supabase } from '../../supabaseClient';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,8 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import AdminButtons from '../../pages/admin/AdminButtons'; // Importando o componente
-import { useEffect, useState } from 'react'; // Importando useEffect
+
+import useAuthStore from '@/stores/useAuthStore';
+import { supabase } from '../../supabaseClient';
 
 type NamePageMap = {
   '/problema': string;
@@ -54,7 +54,8 @@ function HeaderTopDashboard() {
 
   useEffect(() => {
     const fetchName = async () => {
-      if (user?.companyId) { // Verifique se user e companyId estão disponíveis
+      if (user?.companyId) {
+        // Verifique se user e companyId estão disponíveis
         const { data, error } = await supabase
           .from('empresas')
           .select('nome')
@@ -96,10 +97,19 @@ function HeaderTopDashboard() {
             )}
             {user.is_master && (
               <p className="text-gray-900 font-normal text-sm hidden md:block">
-                {name || user.companyId} {/* Exibindo o nome da empresa ou companyId como fallback */}
+                {name || user.companyId}{' '}
+                {/* Exibindo o nome da empresa ou companyId como fallback */}
               </p>
             )}
-            {user.is_master && <AdminButtons empresaId={user.companyId} />}
+            {user.is_master && (
+              <Button
+                variant="outline"
+                onClick={() => navigate('/admin')}
+                className="mr-1"
+              >
+                Painel Admin
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">

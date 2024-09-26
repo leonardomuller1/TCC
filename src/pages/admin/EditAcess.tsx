@@ -1,20 +1,14 @@
-import { useEffect, useState, useRef } from 'react';
-
-// componentes
+import { useEffect, useState } from 'react';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogTitle,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
-
-// uteis
 import { supabase } from '../../supabaseClient';
 
 type Access = {
@@ -26,7 +20,13 @@ type Access = {
   andamento: boolean;
 };
 
-function EditarAcessoDialog({ empresaId }: { empresaId: string }) {
+interface EditarAcessoDialogProps {
+  empresaId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function EditarAcessoDialog({ empresaId, open, onOpenChange }: EditarAcessoDialogProps) {
   const [access, setAccess] = useState<Access>({
     problema: false,
     clientes: false,
@@ -37,31 +37,32 @@ function EditarAcessoDialog({ empresaId }: { empresaId: string }) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const dialogRef = useRef<HTMLDialogElement>(null); // Ref para o diálogo
 
   useEffect(() => {
     const fetchAccess = async () => {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('acessos')
-        .eq('id', empresaId)
-        .single();
+      if (open) {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('empresas')
+          .select('acessos')
+          .eq('id', empresaId)
+          .single();
 
-      if (error) {
-        toast({
-          description: `Erro ao buscar acessos: ${error.message}`,
-          className: 'bg-red-300',
-          duration: 4000,
-        });
-      } else if (data?.acessos) {
-        setAccess(data.acessos);
+        if (error) {
+          toast({
+            description: `Erro ao buscar acessos: ${error.message}`,
+            className: 'bg-red-300',
+            duration: 4000,
+          });
+        } else if (data?.acessos) {
+          setAccess(data.acessos);
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchAccess();
-  }, [empresaId, toast]);
+  }, [empresaId, open, toast]);
 
   const handleChange = (key: keyof Access) => {
     setAccess((prev) => ({
@@ -89,68 +90,30 @@ function EditarAcessoDialog({ empresaId }: { empresaId: string }) {
         className: 'bg-green-300',
         duration: 4000,
       });
-      dialogRef.current?.close(); // Fecha o diálogo após salvar
+      onOpenChange(false); // Close the dialog after saving
     }
     setIsLoading(false);
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button  variant="outline">Editar Acessos</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogTitle>Editar Acessos</DialogTitle>
         <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-2">
-            <Checkbox
-              checked={access.problema}
-              onCheckedChange={() => handleChange('problema')}
-            />
-            Problema
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox
-              checked={access.clientes}
-              onCheckedChange={() => handleChange('clientes')}
-            />
-            Clientes
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox
-              checked={access.solucao}
-              onCheckedChange={() => handleChange('solucao')}
-            />
-            Solução
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox
-              checked={access.concorrentes}
-              onCheckedChange={() => handleChange('concorrentes')}
-            />
-            Concorrentes
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox
-              checked={access.financeiro}
-              onCheckedChange={() => handleChange('financeiro')}
-            />
-            Financeiro
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox
-              checked={access.andamento}
-              onCheckedChange={() => handleChange('andamento')}
-            />
-            Andamento
-          </label>
+          {Object.entries(access).map(([key, value]) => (
+            <label key={key} className="flex items-center gap-2">
+              <Checkbox
+                checked={value}
+                onCheckedChange={() => handleChange(key as keyof Access)}
+              />
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </label>
+          ))}
         </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? 'Salvando...' : 'Salvar'}
-            </Button>
-          </DialogClose>
+          <Button onClick={handleSave} disabled={isLoading}>
+            {isLoading ? 'Salvando...' : 'Salvar'}
+          </Button>
         </DialogFooter>
       </DialogContent>
       <Toaster />
