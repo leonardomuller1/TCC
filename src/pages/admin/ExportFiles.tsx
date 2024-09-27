@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import jsPDF from 'jspdf';
 import { supabase } from '@/supabaseClient';
@@ -37,25 +37,84 @@ type Tarefa = {
   updated_at: string;
 };
 
+type Metrica = {
+  id: number;
+  empresa_id: string;
+  nome: string;
+  descricao: string;
+  area: string;
+  valores: { mes: string; valor: number }[];
+  created_at: string;
+  updated_at: string;
+};
+
+type SegmentoClientes = {
+  id: number;
+  empresa_id: string;
+  nome: string;
+  descricao: string;
+  area: string;
+  tipo_cliente: string;
+  vai_atender: boolean;
+  justificativa: string;
+  relations: string[]; // Nova coluna para relações
+  created_at: string;
+  updated_at: string;
+};
+
+type Canal = {
+  id: number;
+  empresa_id: string;
+  nome: string;
+  descricao: string;
+  tipo_de_canal: string;
+  objetivo: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type PublicoAlvo = {
+  id: number;
+  empresa_id: string;
+  segmento_cliente: string;
+  segmento: string;
+  faixa_etaria: string;
+  escolaridade: string;
+  localizacao: string;
+  cargo: string;
+  porte_da_empresa: string;
+  setor_de_atuacao: string;
+  habitos_de_consumo: string;
+  papel_de_compra: string;
+  tarefas_e_responsabilidades: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type SegmentoCliente = {
+  id: number;
+  nome: string;
+};
+
 const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Vetor com os nomes personalizados para os campos do "problema"
   const campoPersonalizadoProblema = {
-    descricao: "Descrição geral do problema",
-    como_resolvido: "Como é resolvido atualmente",
-    impacto: "Impacto do problema",
-    exemplos: "Exemplos e casos de uso",
-    frequencia: "Frequência e ocorrência do problema",
-    segmento: "Segmento de clientes afetados",
-    gravidade: "Gravidade do problema",
+    descricao: 'Descrição geral do problema',
+    como_resolvido: 'Como é resolvido atualmente',
+    impacto: 'Impacto do problema',
+    exemplos: 'Exemplos e casos de uso',
+    frequencia: 'Frequência e ocorrência do problema',
+    segmento: 'Segmento de clientes afetados',
+    gravidade: 'Gravidade do problema',
   };
 
   const handleExportClick = () => {
     if (!empresaId) {
       toast({
-        description: "Por favor, selecione uma empresa primeiro.",
+        description: 'Por favor, selecione uma empresa primeiro.',
         className: 'bg-yellow-300',
         duration: 4000,
       });
@@ -64,97 +123,50 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
     setExportDialogOpen(true);
   };
 
-  const exportTasks = async (empresaId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('tarefas')
-        .select('*')
-        .eq('empresa_id', empresaId);
-  
-      if (error) throw error;
-  
-      const csvRows = [];
-      // Header
-      csvRows.push([
-        'Nome',
-        'Descrição',
-        'Status',
-        'Prazo',
-        'Responsável',
-      ]);
-  
-      // Data rows
-      data.forEach((tarefa: Tarefa) => {
-        csvRows.push([
-          tarefa.nome,
-          tarefa.descricao,
-          tarefa.status,
-          tarefa.prazo,
-          tarefa.responsavel,
-        ]);
-      });
-  
-      const csvString = csvRows.map((row) => row.join(',')).join('\n');
-      const blob = new Blob([csvString], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-  
-      const a = document.createElement('a');
-      a.setAttribute('href', url);
-      a.setAttribute('download', 'tarefas.csv');
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-  
-      toast({
-        description: 'Dados de tarefas exportados com sucesso!',
-        className: 'bg-green-300',
-        duration: 4000,
-      });
-    } catch (error) {
-      console.error('Erro ao exportar dados de tarefas:', error);
-      toast({
-        description: 'Erro ao exportar dados de tarefas.',
-        className: 'bg-red-300',
-        duration: 4000,
-      });
-    }
-  };
-  
-
   const handleExportOption = async (option: string) => {
     if (!empresaId) {
       toast({
-        description: "Por favor, selecione uma empresa válida.",
+        description: 'Por favor, selecione uma empresa válida.',
         className: 'bg-yellow-300',
         duration: 4000,
       });
       return;
     }
-  
+
     setExportDialogOpen(false);
-  
+
     try {
-      if (option === 'competitors') {
-        await exportCompetitors(empresaId); // empresaId agora está garantido como string
+      if (option === 'concorrentes') {
+        await exportCompetitors(empresaId);
       } else if (option === 'tarefas') {
-        await exportTasks(empresaId); // Chama a função de exportação de tarefas
+        await exportTasks(empresaId);
+      } else if (option === 'metricas') {
+        await exportMetrics(empresaId);
+      } else if (option === 'segmentos') {
+        await exportSegmentos(empresaId);
+      } else if (option === 'canais') {
+        await exportCanais(empresaId);
+      } else if (option === 'publicoalvo') {
+        await exportPublicoAlvo(empresaId);
       } else {
         const { data, error } = await supabase
           .from(option)
           .select('*')
           .eq('empresa_id', empresaId);
-  
+
         if (error) throw error;
-  
+
         const dadosPersonalizados = data.map((item: ProblemaData) => {
           const itemPersonalizado: Record<string, string> = {};
           Object.keys(campoPersonalizadoProblema).forEach((campoOriginal) => {
-            const campoRenomeado = campoPersonalizadoProblema[campoOriginal as keyof ProblemaData];
-            itemPersonalizado[campoRenomeado] = item[campoOriginal as keyof ProblemaData];
+            const campoRenomeado =
+              campoPersonalizadoProblema[campoOriginal as keyof ProblemaData];
+            itemPersonalizado[campoRenomeado] =
+              item[campoOriginal as keyof ProblemaData];
           });
           return itemPersonalizado;
         });
-  
+
         gerarPDF(dadosPersonalizados[0]);
         toast({
           description: `Dados de ${option} exportados com sucesso!`,
@@ -171,7 +183,109 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
       });
     }
   };
-  
+
+  const exportTasks = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('tarefas')
+        .select('*')
+        .eq('empresa_id', empresaId);
+
+      if (error) throw error;
+
+      const csvRows = [];
+      // Header
+      csvRows.push(['Nome', 'Descrição', 'Status', 'Prazo', 'Responsável']);
+
+      // Data rows
+      data.forEach((tarefa: Tarefa) => {
+        csvRows.push([
+          tarefa.nome,
+          tarefa.descricao,
+          tarefa.status,
+          tarefa.prazo,
+          tarefa.responsavel,
+        ]);
+      });
+
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'tarefas.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      toast({
+        description: 'Dados de tarefas exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados de tarefas:', error);
+      toast({
+        description: 'Erro ao exportar dados de tarefas.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
+  const exportMetrics = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('metricas')
+        .select('*')
+        .eq('empresa_id', empresaId);
+
+      if (error) throw error;
+
+      const csvRows = [];
+      // Header
+      csvRows.push(['Nome', 'Descrição', 'Área', 'Valores']);
+
+      // Data rows
+      data.forEach((metrica: Metrica) => {
+        const valoresString = metrica.valores
+          .map((valor) => `${valor.mes}: ${valor.valor}`)
+          .join(', ');
+        csvRows.push([
+          metrica.nome,
+          metrica.descricao,
+          metrica.area,
+          valoresString,
+        ]);
+      });
+
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'metricas.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      toast({
+        description: 'Dados de métricas exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados de métricas:', error);
+      toast({
+        description: 'Erro ao exportar dados de métricas.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
   const exportCompetitors = async (empresaId: string) => {
     try {
       const { data, error } = await supabase
@@ -197,7 +311,7 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
         csvRows.push(rowData);
       });
 
-      const csvString = csvRows.map(row => row.join(',')).join('\n');
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
       const blob = new Blob([csvString], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
 
@@ -217,6 +331,188 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
       console.error('Erro ao exportar dados de concorrentes:', error);
       toast({
         description: 'Erro ao exportar dados de concorrentes.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
+  const exportSegmentos = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('segmentoclientes')
+        .select('*')
+        .eq('empresa_id', empresaId);
+
+      if (error) throw error;
+
+      const csvRows = [];
+      // Header
+      csvRows.push([
+        'Nome',
+        'Descrição',
+        'Área',
+        'Tipo de Cliente',
+        'Vai Atender',
+        'Justificativa',
+        'Relações',
+      ]);
+
+      // Data rows
+      data.forEach((segmento: SegmentoClientes) => {
+        const relacoesString = segmento.relations.join(', ');
+        csvRows.push([
+          segmento.nome,
+          segmento.descricao,
+          segmento.area,
+          segmento.tipo_cliente,
+          segmento.vai_atender ? 'Sim' : 'Não',
+          segmento.justificativa,
+          relacoesString,
+        ]);
+      });
+
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'segmentos_clientes.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      toast({
+        description: 'Dados de segmentos de clientes exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados de segmentos de clientes:', error);
+      toast({
+        description: 'Erro ao exportar dados de segmentos de clientes.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
+  const exportCanais = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('canal')
+        .select('*')
+        .eq('empresa_id', empresaId);
+
+      if (error) throw error;
+
+      const csvRows = [];
+      // Header
+      csvRows.push(['Nome', 'Descrição', 'Tipo de Canal', 'Objetivo']);
+
+      // Data rows
+      data.forEach((canal: Canal) => {
+        csvRows.push([
+          canal.nome,
+          canal.descricao,
+          canal.tipo_de_canal,
+          canal.objetivo,
+        ]);
+      });
+
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'canais.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      toast({
+        description: 'Dados de canais exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados de canais:', error);
+      toast({
+        description: 'Erro ao exportar dados de canais.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
+  const exportPublicoAlvo = async (empresaId: string) => {
+    try {
+      const segmentosCliente = await fetchSegmentosCliente(empresaId);
+      const segmentoMap = createSegmentoMap(segmentosCliente);
+
+      const { data, error } = await supabase
+        .from('publicoalvo')
+        .select('*')
+        .eq('empresa_id', empresaId);
+
+      if (error) throw error;
+
+      const csvRows = [];
+      // Header
+      csvRows.push([
+        'Segmento Cliente',
+        'Faixa Etária',
+        'Escolaridade',
+        'Localização',
+        'Cargo',
+        'Porte da Empresa',
+        'Setor de Atuação',
+        'Hábitos de Consumo',
+        'Papel de Compra',
+        'Tarefas e Responsabilidades',
+        'Criado em',
+        'Atualizado em',
+      ]);
+
+      // Data rows
+      data.forEach((publico: PublicoAlvo) => {
+        const segmentoNome = segmentoMap[parseInt(publico.segmento_cliente, 10)] || 'Desconhecido';
+        csvRows.push([
+          segmentoNome,
+          publico.faixa_etaria,
+          publico.escolaridade,
+          publico.localizacao,
+          publico.cargo,
+          publico.porte_da_empresa,
+          publico.setor_de_atuacao,
+          publico.habitos_de_consumo,
+          publico.papel_de_compra,
+          publico.tarefas_e_responsabilidades,
+        ]);
+      });
+
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'publico_alvo.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      toast({
+        description: 'Dados de público-alvo exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados de público-alvo:', error);
+      toast({
+        description: 'Erro ao exportar dados de público-alvo.',
         className: 'bg-red-300',
         duration: 4000,
       });
@@ -270,25 +566,98 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
     }
   };
 
+
+  const fetchSegmentosCliente = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('segmentoclientes')
+        .select('id, nome')
+        .eq('empresa_id', empresaId);
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar segmentos de cliente:', error);
+      return [];
+    }
+  };
+  
+  const createSegmentoMap = (segmentos: SegmentoCliente[]) => {
+    const map: { [key: number]: string } = {};
+    segmentos.forEach((segmento) => {
+      map[segmento.id] = segmento.nome;
+    });
+    return map;
+  };
+
+  
   return (
     <>
-      <Button variant="outline" onClick={handleExportClick}>Exportar Dados</Button>
+      <Button variant="outline" onClick={handleExportClick}>
+        Exportar Dados
+      </Button>
       <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Escolha os dados para exportar</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Button variant="outline" onClick={() => handleExportOption('problema')}>Problema</Button>
-            <Button variant="outline" onClick={() => handleExportOption('clientes')}>Clientes</Button>
-            <Button variant="outline" onClick={() => handleExportOption('solucao')}>Solução</Button>
-            <Button variant="outline" onClick={() => handleExportOption('concorrentes')}>Concorrentes</Button>
-            <Button variant="outline" onClick={() => handleExportOption('financeiro')}>Financeiro</Button>
-            <Button variant="outline" onClick={() => handleExportOption('tarefas')}>Tarefas</Button>
-            <Button variant="outline" onClick={() => handleExportOption('competitors')}>Concorrentes</Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('problema')}
+            >
+              Problema
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('segmentos')}
+            >
+              Segmentos de Clientes
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('publicoalvo')}
+            >
+              Público-Alvo
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('canais')}
+            >
+              Canais
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('concorrentes')}
+            >
+              Concorrentes
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('financeiro')}
+            >
+              Financeiro
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('tarefas')}
+            >
+              Tarefas
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleExportOption('metricas')}
+            >
+              Métricas
+            </Button>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setExportDialogOpen(false)}>Cancelar</Button>
+            <Button
+              variant="outline"
+              onClick={() => setExportDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
