@@ -47,15 +47,45 @@ type RegistroFinanceiro = {
   updated_at: string;
 };
 
+const categories = {
+  entrada: [
+    'Vendas de Produtos',
+    'Serviços Prestados',
+    'Rendimentos de Investimentos',
+    'Comissões Recebidas',
+    'Aluguéis Recebidos',
+    'Receitas de Consultoria',
+    'Subvenções Governamentais',
+    'Venda de Ativos',
+  ],
+  saida: [
+    'Despesas Operacionais',
+    'Folha de Pagamento',
+    'Impostos',
+    'Despesas com Fornecedores',
+    'Manutenção de Equipamentos',
+    'Marketing e Publicidade',
+    'Aluguel de Espaço',
+    'Despesas de Transporte',
+    'Despesas com Tecnologia',
+  ],
+};
+
+
 const FinancialsPage = () => {
   const { user } = useAuthStore();
   const { toast } = useToast();
 
-  const [registrosFinanceiros, setRegistrosFinanceiros] = useState<RegistroFinanceiro[]>([]);
+  const [registrosFinanceiros, setRegistrosFinanceiros] = useState<
+    RegistroFinanceiro[]
+  >([]);
   const [openDialogNewRegistro, setOpenDialogNewRegistro] = useState(false);
   const [openDialogEditRegistro, setOpenDialogEditRegistro] = useState(false);
-  const [newRegistro, setNewRegistro] = useState<Partial<RegistroFinanceiro>>({});
-  const [selectedRegistro, setSelectedRegistro] = useState<RegistroFinanceiro | null>(null);
+  const [newRegistro, setNewRegistro] = useState<Partial<RegistroFinanceiro>>(
+    {},
+  );
+  const [selectedRegistro, setSelectedRegistro] =
+    useState<RegistroFinanceiro | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -100,6 +130,26 @@ const FinancialsPage = () => {
 
   const handleSaveNewRegistro = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validação da data
+    // Validação da data
+    const dataAtual = new Date();
+    const dataRegistro = new Date(newRegistro.data || '');
+    const dataMinima = new Date(dataAtual);
+    const dataMaxima = new Date(dataAtual);
+    dataMinima.setFullYear(dataMinima.getFullYear() - 5); // 5 anos atrás
+    dataMaxima.setFullYear(dataMaxima.getFullYear() + 5); // 5 anos à frente
+
+    if (dataRegistro < dataMinima || dataRegistro > dataMaxima) {
+      toast({
+        description:
+          'A data deve estar dentro do intervalo de 5 anos antes ou depois da data atual.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase.from('financeiros').insert([
         {
@@ -125,7 +175,7 @@ const FinancialsPage = () => {
       });
     } catch (error) {
       toast({
-        description: (error as Error).message,
+        description: 'Preencha todos os campos são obrigatórios!',
         className: 'bg-red-300',
         duration: 4000,
       });
@@ -134,7 +184,24 @@ const FinancialsPage = () => {
 
   const handleSaveEditRegistro = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validação da data
     if (!selectedRegistro) return;
+    const dataAtual = new Date();
+    const dataRegistro = new Date(selectedRegistro.data || '');
+    const dataLimite = new Date(
+      dataAtual.setFullYear(dataAtual.getFullYear() - 5),
+    );
+
+    if (dataRegistro < dataLimite || dataRegistro > new Date()) {
+      toast({
+        description: 'A data deve estar dentro dos últimos 5 anos.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('financeiros')
@@ -211,9 +278,19 @@ const FinancialsPage = () => {
     setSelectedRegistro(null);
   };
 
+  // Formatar o valor para Real
+  const formatarValor = (valor: number) => {
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
+
   return (
     <CardPages>
-      <h1 className="text-gray-900 font-bold text-2xl">Estrutura de custos e receita</h1>
+      <h1 className="text-gray-900 font-bold text-2xl">
+        Estrutura de custos e receita
+      </h1>
       <DataTable
         headers={['Nome', 'Tipo', 'Categoria', 'Data', 'Valor']}
         rows={registrosFinanceiros.map((registro) => [
@@ -221,23 +298,28 @@ const FinancialsPage = () => {
           registro.tipo === 'entrada' ? 'Entrada' : 'Saída',
           registro.categoria,
           new Date(registro.data).toLocaleDateString(),
-          registro.valor.toFixed(2),
+          <span
+            className={
+              registro.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'
+            }
+          >
+            {formatarValor(registro.valor)}
+          </span>,
         ])}
         onAddClick={handleAddRegistro}
         onOptionsClick={handleEditRegistro}
       />
-      <Toaster />
 
-      {/* Modal para adicionar novo registro */}
+      {/* Modal para adicionar registro */}
       <Dialog
         open={openDialogNewRegistro}
         onOpenChange={setOpenDialogNewRegistro}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar Novo Registro</DialogTitle>
+            <DialogTitle>Adicionar Registro</DialogTitle>
             <DialogDescription>
-              Preencha as informações abaixo para adicionar um novo registro financeiro.
+              Preencha as informações do novo registro financeiro.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveNewRegistro}>
@@ -256,10 +338,8 @@ const FinancialsPage = () => {
               <Label htmlFor="tipo">Tipo</Label>
               <Select
                 value={newRegistro.tipo || ''}
-                onValueChange={(value) =>
-                  handleSelectChange('tipo', value)
-                }
-                required={true}
+                onValueChange={(value) => handleSelectChange('tipo', value)}
+                required
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione o tipo" />
@@ -274,14 +354,29 @@ const FinancialsPage = () => {
             </div>
             <div className="mb-4">
               <Label htmlFor="categoria">Categoria</Label>
-              <Input
-                type="text"
-                id="categoria"
-                name="categoria"
+              <Select
                 value={newRegistro.categoria || ''}
-                onChange={handleChange}
+                onValueChange={(value) =>
+                  handleSelectChange('categoria', value)
+                }
                 required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {(newRegistro.tipo === 'entrada'
+                      ? categories.entrada
+                      : categories.saida
+                    ).map((label) => (
+                      <SelectItem key={label} value={label}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <div className="mb-4">
               <Label htmlFor="data">Data</Label>
@@ -298,7 +393,6 @@ const FinancialsPage = () => {
               <Label htmlFor="valor">Valor</Label>
               <Input
                 type="number"
-                step="0.01"
                 id="valor"
                 name="valor"
                 value={newRegistro.valor || ''}
@@ -310,11 +404,8 @@ const FinancialsPage = () => {
               <Button type="submit">Salvar</Button>
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => {
-                  clearForm();
-                  setOpenDialogNewRegistro(false);
-                }}
+                variant="secondary"
+                onClick={() => setOpenDialogNewRegistro(false)}
               >
                 Cancelar
               </Button>
@@ -332,7 +423,7 @@ const FinancialsPage = () => {
           <DialogHeader>
             <DialogTitle>Editar Registro</DialogTitle>
             <DialogDescription>
-              Atualize as informações abaixo para editar o registro financeiro.
+              Edite as informações do registro selecionado.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveEditRegistro}>
@@ -351,9 +442,8 @@ const FinancialsPage = () => {
               <Label htmlFor="tipo">Tipo</Label>
               <Select
                 value={selectedRegistro?.tipo || ''}
-                onValueChange={(value) =>
-                  handleSelectChange('tipo', value)
-                }
+                onValueChange={(value) => handleSelectChange('tipo', value)}
+                required
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione o tipo" />
@@ -368,14 +458,29 @@ const FinancialsPage = () => {
             </div>
             <div className="mb-4">
               <Label htmlFor="categoria">Categoria</Label>
-              <Input
-                type="text"
-                id="categoria"
-                name="categoria"
+              <Select
                 value={selectedRegistro?.categoria || ''}
-                onChange={handleChange}
+                onValueChange={(value) =>
+                  handleSelectChange('categoria', value)
+                }
                 required
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {(selectedRegistro?.tipo === 'entrada'
+                      ? categories.entrada
+                      : categories.saida
+                    ).map((label) => (
+                      <SelectItem key={label} value={label}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <div className="mb-4">
               <Label htmlFor="data">Data</Label>
@@ -392,7 +497,6 @@ const FinancialsPage = () => {
               <Label htmlFor="valor">Valor</Label>
               <Input
                 type="number"
-                step="0.01"
                 id="valor"
                 name="valor"
                 value={selectedRegistro?.valor || ''}
@@ -404,28 +508,17 @@ const FinancialsPage = () => {
               <Button type="submit">Salvar</Button>
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => {
-                  clearForm();
-                  setOpenDialogEditRegistro(false);
-                }}
+                variant="destructive"
+                onClick={handleDeleteRegistro}
               >
-                Cancelar
+                Excluir
               </Button>
-              {selectedRegistro && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDeleteRegistro}
-                >
-                  Excluir
-                </Button>
-              )}
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      </CardPages>
+      <Toaster />
+    </CardPages>
   );
 };
 
