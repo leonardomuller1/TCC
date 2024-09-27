@@ -34,6 +34,9 @@ import {
 import useAuthStore from '@/stores/useAuthStore';
 import { supabase } from '@/supabaseClient';
 import CardPages from '@/components/dashboard/CardPagesComponent';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CheckedState } from '@radix-ui/react-checkbox';
+import FiltersFinancials from './FinancialsSubPage/FiltersFinancials';
 
 // Tipos
 type RegistroFinanceiro = {
@@ -43,6 +46,7 @@ type RegistroFinanceiro = {
   categoria: string;
   data: string;
   valor: number;
+  pagamento_efetuado: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -71,7 +75,6 @@ const categories = {
   ],
 };
 
-
 const FinancialsPage = () => {
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -81,11 +84,20 @@ const FinancialsPage = () => {
   >([]);
   const [openDialogNewRegistro, setOpenDialogNewRegistro] = useState(false);
   const [openDialogEditRegistro, setOpenDialogEditRegistro] = useState(false);
-  const [newRegistro, setNewRegistro] = useState<Partial<RegistroFinanceiro>>(
-    {},
-  );
+  const [newRegistro, setNewRegistro] = useState<Partial<RegistroFinanceiro>>({
+    pagamento_efetuado: false,
+  });
   const [selectedRegistro, setSelectedRegistro] =
     useState<RegistroFinanceiro | null>(null);
+
+  const [totalMovimentacoes, setTotalMovimentacoes] = useState(0);
+  const [totalEntradas, setTotalEntradas] = useState(0);
+  const [totalSaidas, setTotalSaidas] = useState(0);
+
+  const [filterName, setFilterName] = useState('');
+  const [filterTipo, setFilterTipo] = useState('none');
+  const [filterDataInicial, setFilterDataInicial] = useState('');
+  const [filterDataFinal, setFilterDataFinal] = useState('');
 
   const fetchData = useCallback(async () => {
     if (!user || !user.companyId) {
@@ -105,6 +117,20 @@ const FinancialsPage = () => {
 
       if (registrosError) throw new Error(registrosError.message);
       setRegistrosFinanceiros(registrosData || []);
+
+      // Calcular totais
+      let entradas = 0;
+      let saidas = 0;
+      registrosData?.forEach((registro) => {
+        if (registro.tipo === 'entrada') {
+          entradas += registro.valor;
+        } else {
+          saidas += registro.valor;
+        }
+      });
+      setTotalEntradas(entradas);
+      setTotalSaidas(saidas);
+      setTotalMovimentacoes(entradas + saidas);
     } catch (error) {
       toast({
         description: (error as Error).message,
@@ -117,6 +143,31 @@ const FinancialsPage = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const filteredRegistros = registrosFinanceiros.filter((registro) => {
+    const nameMatch = filterName === '' || (registro.nome || '').toLowerCase().includes(filterName.toLowerCase());
+    const tipoMatch = filterTipo === 'none' || (registro.tipo || '').toLowerCase() === filterTipo.toLowerCase();
+    const dataMatch = (!filterDataInicial || new Date(registro.data) >= new Date(filterDataInicial)) &&
+                      (!filterDataFinal || new Date(registro.data) <= new Date(filterDataFinal));
+
+    return nameMatch && tipoMatch && dataMatch;
+  });
+
+  useEffect(() => {
+    // Recalcular totais com base nos registros filtrados
+    let entradas = 0;
+    let saidas = 0;
+    filteredRegistros.forEach((registro) => {
+      if (registro.tipo === 'entrada') {
+        entradas += registro.valor;
+      } else {
+        saidas += registro.valor;
+      }
+    });
+    setTotalEntradas(entradas);
+    setTotalSaidas(saidas);
+    setTotalMovimentacoes(entradas + saidas);
+  }, [filteredRegistros]);
 
   const handleAddRegistro = () => {
     setOpenDialogNewRegistro(true);
@@ -132,13 +183,18 @@ const FinancialsPage = () => {
     e.preventDefault();
 
     // Validação da data
-    // Validação da data
     const dataAtual = new Date();
     const dataRegistro = new Date(newRegistro.data || '');
-    const dataMinima = new Date(dataAtual);
-    const dataMaxima = new Date(dataAtual);
-    dataMinima.setFullYear(dataMinima.getFullYear() - 5); // 5 anos atrás
-    dataMaxima.setFullYear(dataMaxima.getFullYear() + 5); // 5 anos à frente
+    const dataMinima = new Date(
+      dataAtual.getFullYear() - 5,
+      dataAtual.getMonth(),
+      dataAtual.getDate(),
+    );
+    const dataMaxima = new Date(
+      dataAtual.getFullYear() + 5,
+      dataAtual.getMonth(),
+      dataAtual.getDate(),
+    );
 
     if (dataRegistro < dataMinima || dataRegistro > dataMaxima) {
       toast({
@@ -185,17 +241,33 @@ const FinancialsPage = () => {
   const handleSaveEditRegistro = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validação da data
-    if (!selectedRegistro) return;
+    // Verificar se selectedRegistro não é nulo
+    if (!selectedRegistro) {
+      toast({
+        description: 'Nenhum registro foi selecionado.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+      return;
+    }
+
     const dataAtual = new Date();
-    const dataRegistro = new Date(selectedRegistro.data || '');
-    const dataLimite = new Date(
-      dataAtual.setFullYear(dataAtual.getFullYear() - 5),
+    const dataRegistro = new Date(newRegistro.data || '');
+    const dataMinima = new Date(
+      dataAtual.getFullYear() - 5,
+      dataAtual.getMonth(),
+      dataAtual.getDate(),
+    );
+    const dataMaxima = new Date(
+      dataAtual.getFullYear() + 5,
+      dataAtual.getMonth(),
+      dataAtual.getDate(),
     );
 
-    if (dataRegistro < dataLimite || dataRegistro > new Date()) {
+    if (dataRegistro < dataMinima || dataRegistro > dataMaxima) {
       toast({
-        description: 'A data deve estar dentro dos últimos 5 anos.',
+        description:
+          'A data deve estar dentro do intervalo de 5 anos antes ou depois da data atual.',
         className: 'bg-red-300',
         duration: 4000,
       });
@@ -273,6 +345,15 @@ const FinancialsPage = () => {
     handleChange({ name, value });
   };
 
+  const handleCheckboxChange = (name: string, checked: CheckedState) => {
+    const value = checked === 'indeterminate' ? false : !!checked; // Garante que o valor seja booleano
+    if (openDialogNewRegistro) {
+      setNewRegistro((prev) => ({ ...prev, [name]: value }));
+    } else if (openDialogEditRegistro && selectedRegistro) {
+      setSelectedRegistro((prev) => prev && { ...prev, [name]: value });
+    }
+  };
+
   const clearForm = () => {
     setNewRegistro({});
     setSelectedRegistro(null);
@@ -286,14 +367,54 @@ const FinancialsPage = () => {
     });
   };
 
+  // Formatar a data para o formato YYYY-MM-DD
+  const formatarData = (data: string) => {
+    const dataObj = new Date(data);
+    const ano = dataObj.getFullYear();
+    const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataObj.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  };
+
   return (
     <CardPages>
       <h1 className="text-gray-900 font-bold text-2xl">
         Estrutura de custos e receita
       </h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border">
+          <h2 className="text-base">Total Movimentações</h2>
+          <p className="text-xl font-bold">
+            {formatarValor(totalMovimentacoes)}
+          </p>
+        </div>
+        <div className="bg-green-50 p-4 rounded-lg border">
+          <h2 className="text-base mb-2">Total Entradas</h2>
+          <p className="text-xl font-bold text-green-600">
+            {formatarValor(totalEntradas)}
+          </p>
+        </div>
+        <div className="bg-red-50 p-4 rounded-lg border">
+          <h2 className="text-base">Total Saídas</h2>
+          <p className="text-xl font-bold text-red-600">
+            {formatarValor(totalSaidas)}
+          </p>
+        </div>
+      </div>
+      <FiltersFinancials
+        filterName={filterName}
+        setFilterName={setFilterName}
+        filterTipo={filterTipo}
+        setFilterTipo={setFilterTipo}
+        filterDataInicial={filterDataInicial}
+        setFilterDataInicial={setFilterDataInicial}
+        filterDataFinal={filterDataFinal}
+        setFilterDataFinal={setFilterDataFinal}
+        handleAddRegistro={handleAddRegistro}
+      />
       <DataTable
-        headers={['Nome', 'Tipo', 'Categoria', 'Data', 'Valor']}
-        rows={registrosFinanceiros.map((registro) => [
+        headers={['Nome', 'Tipo', 'Categoria', 'Data', 'Valor', 'Status']}
+        rows={filteredRegistros.map((registro) => [
           registro.nome,
           registro.tipo === 'entrada' ? 'Entrada' : 'Saída',
           registro.categoria,
@@ -304,6 +425,13 @@ const FinancialsPage = () => {
             }
           >
             {formatarValor(registro.valor)}
+          </span>,
+          <span
+            className={
+              registro.pagamento_efetuado ? 'text-green-600' : 'text-red-600'
+            }
+          >
+            {registro.pagamento_efetuado ? 'Concluído' : 'Pendente'}
           </span>,
         ])}
         onAddClick={handleAddRegistro}
@@ -400,6 +528,19 @@ const FinancialsPage = () => {
                 required
               />
             </div>
+            <div className="mb-4 flex items-center">
+              <Checkbox
+                id="pagamento_efetuado"
+                name="pagamento_efetuado"
+                checked={newRegistro.pagamento_efetuado || false}
+                onCheckedChange={(checked) =>
+                  handleCheckboxChange('pagamento_efetuado', checked)
+                }
+              />
+              <Label htmlFor="pagamento_efetuado" className="ml-2">
+                Pagamento Efetuado
+              </Label>
+            </div>
             <DialogFooter>
               <Button type="submit">Salvar</Button>
               <Button
@@ -488,7 +629,9 @@ const FinancialsPage = () => {
                 type="date"
                 id="data"
                 name="data"
-                value={selectedRegistro?.data || ''}
+                value={
+                  selectedRegistro ? formatarData(selectedRegistro.data) : ''
+                }
                 onChange={handleChange}
                 required
               />
@@ -503,6 +646,19 @@ const FinancialsPage = () => {
                 onChange={handleChange}
                 required
               />
+            </div>
+            <div className="mb-4 flex items-center">
+              <Checkbox
+                id="pagamento_efetuado"
+                name="pagamento_efetuado"
+                checked={selectedRegistro?.pagamento_efetuado || false}
+                onCheckedChange={(checked) =>
+                  handleCheckboxChange('pagamento_efetuado', checked)
+                }
+              />
+              <Label htmlFor="pagamento_efetuado" className="ml-2">
+                Pagamento Efetuado
+              </Label>
             </div>
             <DialogFooter>
               <Button type="submit">Salvar</Button>
