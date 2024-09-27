@@ -120,6 +120,18 @@ type Funcionalidade = {
   updated_at: string;
 };
 
+type RegistroFinanceiro = {
+  id: number;
+  nome: string;
+  tipo: 'entrada' | 'saida';
+  categoria: string;
+  data: string;
+  valor: number;
+  pagamento_efetuado: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -174,6 +186,8 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
         await exportPublicoAlvo(empresaId);
       } else if (option === 'solucao') {
         await exportSolution(empresaId);
+      } else if (option === 'financeiro') {
+        await exportFinanceiro(empresaId);
       } else {
         const { data, error } = await supabase
           .from(option)
@@ -218,24 +232,24 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
         supabase.from('beneficios').select('*').eq('empresa_id', empresaId),
         supabase.from('funcionalidades').select('*').eq('empresa_id', empresaId),
       ]);
-  
+
       if (solutionResponse.error) throw solutionResponse.error;
       if (benefitsResponse.error) throw benefitsResponse.error;
       if (featuresResponse.error) throw featuresResponse.error;
-  
+
       const solutionData = solutionResponse.data;
       const benefitsData = benefitsResponse.data;
       const featuresData = featuresResponse.data;
-  
+
       if (!solutionData || solutionData.length === 0) {
         console.error('No solution data returned for empresa_id:', empresaId);
         throw new Error('No solution data found');
       }
-  
+
       console.log('Solution data:', solutionData);
       console.log('Benefits data:', benefitsData);
       console.log('Features data:', featuresData);
-  
+
       gerarPDFSolucao(solutionData, benefitsData, featuresData);
     } catch (error) {
       console.error('Detailed error in exportSolution:', error);
@@ -246,7 +260,6 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
       });
     }
   };
-  
 
   const exportTasks = async (empresaId: string) => {
     try {
@@ -584,6 +597,66 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
     }
   };
 
+  const exportFinanceiro = async (empresaId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('financeiros')
+        .select('*')
+        .eq('empresa_id', empresaId);
+
+      if (error) throw error;
+
+      const csvRows = [];
+      // Header
+      csvRows.push([
+        'Nome',
+        'Tipo',
+        'Categoria',
+        'Data',
+        'Valor',
+        'Pagamento Efetuado',
+      ]);
+
+      // Data rows
+      data.forEach((registro: RegistroFinanceiro) => {
+        const dataFormatada = new Date(registro.data).toLocaleDateString('pt-BR');
+
+        csvRows.push([
+          registro.nome,
+          registro.tipo,
+          registro.categoria,
+          dataFormatada,
+          registro.valor,
+          registro.pagamento_efetuado ? 'Sim' : 'Não',
+        ]);
+      });
+
+      const csvString = csvRows.map((row) => row.join(',')).join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'registros_financeiros.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      toast({
+        description: 'Dados financeiros exportados com sucesso!',
+        className: 'bg-green-300',
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error('Erro ao exportar dados financeiros:', error);
+      toast({
+        description: 'Erro ao exportar dados financeiros.',
+        className: 'bg-red-300',
+        duration: 4000,
+      });
+    }
+  };
+
   const gerarPDF = (data: Record<string, string>) => {
     try {
       const doc = new jsPDF();
@@ -634,13 +707,13 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
   const gerarPDFSolucao = (solutionData: Solucao[], benefitsData: Beneficio[], featuresData: Funcionalidade[]) => {
     try {
       const doc = new jsPDF();
-  
+
       doc.setFontSize(18);
       doc.text('Relatório de Soluções, Benefícios e Funcionalidades', 105, 15, { align: 'center' });
-  
+
       doc.setFontSize(12);
       let yPosition = 30;
-  
+
       const addSection = (title: string, content: string) => {
         doc.setFontSize(14);
         doc.text(title, 10, yPosition);
@@ -649,36 +722,36 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
         const lines = doc.splitTextToSize(content, 180);
         doc.text(lines, 10, yPosition);
         yPosition += lines.length * 7 + 10;
-  
+
         if (yPosition > 280) {
           doc.addPage();
           yPosition = 20;
         }
       };
-  
+
       // Loop through each solution and add it to the PDF
       solutionData.forEach((solution, index) => {
         if (index > 0) {
           doc.addPage();
           yPosition = 20;
         }
-  
+
         doc.setFontSize(16);
         doc.text(`Solução ${index + 1}`, 105, yPosition, { align: 'center' });
         yPosition += 15;
-  
+
         addSection('Descrição geral da solução', solution.descricao);
         addSection('Desafios', solution.desafios);
         addSection('Frase curta', solution.frase_curta);
       });
-  
+
       // Add benefits section
       doc.addPage();
       yPosition = 20;
       doc.setFontSize(16);
       doc.text('Benefícios e Vantagens', 105, yPosition, { align: 'center' });
       yPosition += 15;
-  
+
       // Create a table for benefits
       const benefitsTableData = [
         ['Título', 'Descrição', 'Diferenciais Competitivos'],
@@ -688,11 +761,11 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
           benefit.diferenciais_competitivos,
         ]),
       ];
-  
+
       const benefitsTableColumnWidths = [60, 60, 60];
       const benefitsTableRowHeight = 10;
       const benefitsTableStartY = yPosition + 10;
-  
+
       doc.autoTable({
         startY: benefitsTableStartY,
         head: [benefitsTableData[0]],
@@ -705,14 +778,14 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
         rowHeight: benefitsTableRowHeight,
         margin: { top: 10 },
       });
-  
+
       // Add features section
       doc.addPage();
       yPosition = 20;
       doc.setFontSize(16);
       doc.text('Funcionalidades', 105, yPosition, { align: 'center' });
       yPosition += 15;
-  
+
       // Create a table for features
       const featuresTableData = [
         ['Título', 'Descrição', 'Prioridade', 'Versão do App'],
@@ -723,11 +796,11 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
           feature.versao_app,
         ]),
       ];
-  
+
       const featuresTableColumnWidths = [40, 60, 30, 30];
       const featuresTableRowHeight = 10;
       const featuresTableStartY = yPosition + 10;
-  
+
       doc.autoTable({
         startY: featuresTableStartY,
         head: [featuresTableData[0]],
@@ -741,9 +814,9 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
         rowHeight: featuresTableRowHeight,
         margin: { top: 10 },
       });
-  
+
       doc.save('relatorio_solucoes_beneficios_e_funcionalidades.pdf');
-  
+
       toast({
         description: 'Relatório de soluções, benefícios e funcionalidades exportado com sucesso!',
         className: 'bg-green-300',
@@ -758,7 +831,6 @@ const ExportFiles: React.FC<ExportButtonProps> = ({ empresaId }) => {
       });
     }
   };
-  
 
   const fetchSegmentosCliente = async (empresaId: string) => {
     try {
