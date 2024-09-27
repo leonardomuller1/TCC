@@ -59,12 +59,15 @@ const SolutionPage = () => {
   
       if (error) {
         // Se o erro não for de item não encontrado, trate-o
-        if (error.code !== 'PGRST116') {
+        if (error.code === 'PGRST116') {
+          toast({
+            description: 'Nenhuma solução existente foi encontrada.',
+            className: 'bg-yellow-300',
+            duration: 4000,
+          });
+        } else {
           throw new Error(error.message);
         }
-        // Se o erro for de item não encontrado, significa que não há soluções para esta empresa
-        await createNewSolution();
-        return; // Retorne para evitar atualizar o estado com dados nulos
       }
   
       // Atualiza os estados se a solução já existe
@@ -83,43 +86,6 @@ const SolutionPage = () => {
     }
   };
   
-  
-
-  const createNewSolution = async () => {
-    try {
-      const { data: novaSolucao, error: insertError } = await supabase
-        .from('solucao')
-        .insert([
-          {
-            empresa_id: user?.companyId,
-            descricao: '',
-            desafios: '',
-            frase_curta: '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
-
-      if (insertError) {
-        throw new Error(insertError.message);
-      }
-
-      // Atualiza os estados com a nova solução
-      setSolucao(novaSolucao);
-      setDescricao(novaSolucao.descricao);
-      setDesafios(novaSolucao.desafios);
-      setFraseCurta(novaSolucao.frase_curta);
-    } catch (error) {
-      toast({
-        description: (error as Error).message,
-        className: 'bg-red-300',
-        duration: 4000,
-      });
-    }
-  };
-
   const handleSave = async () => {
     if (!solucao || !solucao.id) return;
 
