@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 //componentes
 import CardPages from '@/components/dashboard/CardPagesComponent';
@@ -10,7 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 //auxiliares
 import { supabase } from '@/supabaseClient';
 import useAuthStore from '@/stores/useAuthStore';
-
+// eslint-disable-next-line no-var
 type Problema = {
   id: number;
   empresa_id: string;
@@ -28,6 +28,8 @@ type Problema = {
 const ProblemsPage = () => {
   const { user } = useAuthStore();
   const [problema, setProblema] = useState<Problema | null>(null);
+  
+  const unicoExecutadoRef = useRef(false); // Ref para garantir execução única
 
   //campos
   const [descricao, setDescricao] = useState('');
@@ -73,49 +75,40 @@ const ProblemsPage = () => {
           setFrequencia(problemaExistente.frequencia);
           setSegmento(problemaExistente.segmento);
           setGravidade(problemaExistente.gravidade);
-        } else {
-          // Se não houver problemas, verificar se já existe um com o mesmo id da empresa
-          const { data: problemasExistentes, error: fetchError } = await supabase
+        } else if (!unicoExecutadoRef.current) {
+          // Verifica se ainda não foi executado
+          unicoExecutadoRef.current = true;
+
+          // Se não houver nenhum problema existente, criar um novo
+          const { data: novoProblema, error: insertError } = await supabase
             .from('problema')
-            .select('*')
-            .eq('empresa_id', user.companyId);
+            .insert([{
+              empresa_id: user.companyId,
+              descricao: '',
+              como_resolvido: '',
+              impacto: '',
+              exemplos: '',
+              frequencia: '',
+              segmento: '',
+              gravidade: '',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }])
+            .select()
+            .single();
 
-          if (fetchError) {
-            throw new Error(fetchError.message);
+          if (insertError) {
+            throw new Error(insertError.message);
           }
 
-          if (problemasExistentes.length === 0) {
-            // Se não houver nenhum problema existente, criar um novo
-            const { data: novoProblema, error: insertError } = await supabase
-              .from('problema')
-              .insert([{
-                empresa_id: user.companyId,
-                descricao: '',
-                como_resolvido: '',
-                impacto: '',
-                exemplos: '',
-                frequencia: '',
-                segmento: '',
-                gravidade: '',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              }])
-              .select()
-              .single();
-
-            if (insertError) {
-              throw new Error(insertError.message);
-            }
-
-            setProblema(novoProblema);
-            setDescricao(novoProblema.descricao);
-            setResolvido(novoProblema.como_resolvido);
-            setImpacto(novoProblema.impacto);
-            setExemplos(novoProblema.exemplos);
-            setFrequencia(novoProblema.frequencia);
-            setSegmento(novoProblema.segmento);
-            setGravidade(novoProblema.gravidade);
-          }
+          setProblema(novoProblema);
+          setDescricao(novoProblema.descricao);
+          setResolvido(novoProblema.como_resolvido);
+          setImpacto(novoProblema.impacto);
+          setExemplos(novoProblema.exemplos);
+          setFrequencia(novoProblema.frequencia);
+          setSegmento(novoProblema.segmento);
+          setGravidade(novoProblema.gravidade);
         }
       } catch (error) {
         toast({
@@ -127,7 +120,7 @@ const ProblemsPage = () => {
     };
 
     fetchProblemas();
-  }, [toast, user]); // Certifique-se de incluir 'user' como dependência
+  }, [toast, user]);
 
   const handleSave = async () => {
     if (!problema || !problema.id) return;

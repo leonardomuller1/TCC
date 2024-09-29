@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 //componentes
 import CardPages from '@/components/dashboard/CardPagesComponent';
@@ -28,6 +28,8 @@ const SolutionPage = () => {
   const { user } = useAuthStore();
   const [solucao, setSolucao] = useState<Solucao | null>(null);
 
+  const unicoExecutadoRef = useRef(false); // Ref para garantir execução única
+
   //campos
   const [descricao, setDescricao] = useState('');
   const [desafios, setDesafios] = useState('');
@@ -36,56 +38,73 @@ const SolutionPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSolucao();
-  }, [user]);
+    const fetchSolucao = async () => {
+      if (!user || !user.companyId) {
+        toast({
+          description: 'Usuário não autenticado ou companyId ausente',
+          className: 'bg-red-300',
+          duration: 4000,
+        });
+        return;
+      }
 
-  const fetchSolucao = async () => {
-    if (!user || !user.companyId) {
-      toast({
-        description: 'Usuário não autenticado ou companyId ausente',
-        className: 'bg-red-300',
-        duration: 4000,
-      });
-      return;
-    }
-  
-    try {
-      // Buscar solução existente
-      const { data, error } = await supabase
-        .from('solucao')
-        .select('*')
-        .eq('empresa_id', user.companyId)
-        .single();
-  
-      if (error) {
-        // Se o erro não for de item não encontrado, trate-o
-        if (error.code === 'PGRST116') {
-          toast({
-            description: 'Nenhuma solução existente foi encontrada.',
-            className: 'bg-yellow-300',
-            duration: 4000,
-          });
-        } else {
+      try {
+        // Buscar solução existente
+        const { data, error } = await supabase
+          .from('solucao')
+          .select('*')
+          .eq('empresa_id', user.companyId);
+
+        if (error) {
           throw new Error(error.message);
         }
+
+        if (data && data.length > 0) {
+          // Se soluções existirem, use a primeira
+          const solucaoExistente = data[0];
+          setSolucao(solucaoExistente);
+          setDescricao(solucaoExistente.descricao);
+          setDesafios(solucaoExistente.desafios);
+          setFraseCurta(solucaoExistente.frase_curta);
+        } else if (!unicoExecutadoRef.current) {
+          // Verifica se ainda não foi executado
+          unicoExecutadoRef.current = true;
+
+          // Se não houver nenhuma solução existente, criar uma nova
+          const { data: novaSolucao, error: insertError } = await supabase
+            .from('solucao')
+            .insert([{
+              empresa_id: user.companyId,
+              descricao: '',
+              desafios: '',
+              frase_curta: '',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }])
+            .select()
+            .single();
+
+          if (insertError) {
+            throw new Error(insertError.message);
+          }
+
+          setSolucao(novaSolucao);
+          setDescricao(novaSolucao.descricao);
+          setDesafios(novaSolucao.desafios);
+          setFraseCurta(novaSolucao.frase_curta);
+        }
+      } catch (error) {
+        toast({
+          description: (error as Error).message,
+          className: 'bg-red-300',
+          duration: 4000,
+        });
       }
-  
-      // Atualiza os estados se a solução já existe
-      if (data) {
-        setSolucao(data);
-        setDescricao(data.descricao);
-        setDesafios(data.desafios);
-        setFraseCurta(data.frase_curta);
-      }
-    } catch (error) {
-      toast({
-        description: (error as Error).message,
-        className: 'bg-red-300',
-        duration: 4000,
-      });
-    }
-  };
-  
+    };
+
+    fetchSolucao();
+  }, [toast, user]);
+
   const handleSave = async () => {
     if (!solucao || !solucao.id) return;
 
@@ -159,23 +178,42 @@ const SolutionPage = () => {
           <Features />
 
           <CustomerExperience />
-          
+
           <InputGroup
             title="Proposta de Valor"
             subtitle={
               <>
-                A metodologia 5W2H é uma excelente escolha para estruturar a proposta de valor, pois ajuda a garantir que todos os aspectos importantes sejam abordados de maneira clara e completa.
+                A metodologia 5W2H é uma excelente escolha para estruturar a
+                proposta de valor, pois ajuda a garantir que todos os aspectos
+                importantes sejam abordados de maneira clara e completa.
                 <br />
                 <br />
                 <strong>Metodologia 5W2H</strong>
                 <ul>
                   <li>• What (O que): O que é a proposta de valor?</li>
-                  <li>• Why (Por que): Por que a proposta de valor é importante? Quais problemas ela resolve?</li>
-                  <li>• Who (Quem): Quem se beneficiará com essa proposta de valor?</li>
-                  <li>• Where (Onde): Onde essa proposta de valor será implementada ou utilizada?</li>
-                  <li>• When (Quando): Quando a proposta de valor será implementada ou estará disponível?</li>
-                  <li>• How (Como): Como a proposta de valor será implementada?</li>
-                  <li>• How much (Quanto): Quanto custará implementar ou utilizar essa proposta de valor?</li>
+                  <li>
+                    • Why (Por que): Por que a proposta de valor é importante?
+                    Quais problemas ela resolve?
+                  </li>
+                  <li>
+                    • Who (Quem): Quem se beneficiará com essa proposta de
+                    valor?
+                  </li>
+                  <li>
+                    • Where (Onde): Onde essa proposta de valor será
+                    implementada ou utilizada?
+                  </li>
+                  <li>
+                    • When (Quando): Quando a proposta de valor será
+                    implementada ou estará disponível?
+                  </li>
+                  <li>
+                    • How (Como): Como a proposta de valor será implementada?
+                  </li>
+                  <li>
+                    • How much (Quanto): Quanto custará implementar ou utilizar
+                    essa proposta de valor?
+                  </li>
                 </ul>
               </>
             }
