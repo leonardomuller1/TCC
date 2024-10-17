@@ -279,7 +279,7 @@ const PublicoAlvo = () => {
         />
         <Button onClick={handleAddPublico} className="gap-2">
           <PlusCircledIcon className="text-primary-foreground" />
-          Adicionar canal
+          Adicionar público-alvo
         </Button>
       </div>
       <DataTable
